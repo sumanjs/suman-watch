@@ -1,0 +1,29 @@
+{
+  "name": "suman-watch",
+  "version": "0.0.1001",
+  "description": "Watcher module for Suman project",
+  "main": "index.js",
+  "scripts": {
+    "test": "suman"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sumanjs/suman-watch.git"
+  },
+  "keywords": [
+    "suman",
+    "test",
+    "mocha",
+    "watch",
+    "watcher",
+    "testing",
+    "test",
+    "integration"
+  ],
+  "author": "Olegzandr",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sumanjs/suman-watch/issues"
+  },
+  "homepage": "https://github.com/sumanjs/suman-watch#readme"
+}
