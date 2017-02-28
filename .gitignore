@@ -58,3 +58,4 @@ typings/
 .env
 
 .idea
+*suman/logs/test-target/

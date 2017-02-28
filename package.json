@@ -25,5 +25,11 @@
   "bugs": {
     "url": "https://github.com/sumanjs/suman-watch/issues"
   },
-  "homepage": "https://github.com/sumanjs/suman-watch#readme"
+  "homepage": "https://github.com/sumanjs/suman-watch#readme",
+  "devDependencies": {
+    "@types/node": "^7.0.5"
+  },
+  "dependencies": {
+    "chokidar": "^1.6.1"
+  }
 }
