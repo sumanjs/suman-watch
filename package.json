@@ -30,10 +30,10 @@
     "async": "^2.3.0",
     "chokidar": "^1.6.1",
     "socket.io": "^1.7.3",
-    "suman-utils": "latest"
+    "suman-utils": "latest",
+    "suman-browser-polyfills": "latest"
   },
   "devDependencies": {
-    "@types/node": "^7.0.5",
-    "suman-browser-polyfills": "0.0.1004"
+    "@types/node": "^7.0.5"
   }
 }
