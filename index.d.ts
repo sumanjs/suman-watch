@@ -6,6 +6,7 @@ export interface ISumanWatchResult {
     stderr: string;
 }
 export interface ISumanWatchOptions {
+    paths: Array<string>;
     noTranspile?: boolean;
     noRun?: boolean;
     watchPer?: ISumanWatchPerItem;

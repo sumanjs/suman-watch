@@ -39,10 +39,10 @@ export interface ISumanWatchResult {
 }
 
 export interface ISumanWatchOptions {
+  paths: Array<string>,
   noTranspile?: boolean,
   noRun?: boolean,
   watchPer?: ISumanWatchPerItem
-
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////
