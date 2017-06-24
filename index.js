@@ -29,7 +29,7 @@ module.exports = function (obj, cb) {
   process.on('SIGINT', onSIG);
   process.on('SIGTERM', onSIG);
 
-  const projectRoot = obj.projectRoot || su.findProjectRoot(process.cwd());
+  const projectRoot = su.findProjectRoot(process.cwd());
   const testSrcDir = process.env['TEST_SRC_DIR'];
 
   async.autoInject({
@@ -41,14 +41,13 @@ module.exports = function (obj, cb) {
     transpileAll: function (getSrcPaths, cb) {
 
       const paths = Object.keys(getSrcPaths).filter(function (key) {
-        return getSrcPaths[key]['@transform.sh'];
+        return getSrcPaths[key]['@transform.sh']; // returns true or undefined
       })
       .map(function(k){
          return path.resolve(k + '/@transform.sh');
       });
 
       console.log('paths => ', paths);
-
 
       transpileAll(paths, cb);
 

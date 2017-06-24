@@ -17,8 +17,7 @@ A @run.sh file will be applied to any file below it in the filesystem tree.
 
 
 # Common Usage 
-Here are some example commands, with a description of what each command does. Suman provides some sensible defaults for the 
-two most common patterns when using watch features for testing -
+Suman provides some sensible defaults for the two most common patterns when using watch features for testing -
 
 1. When test files change, we run the changed file. This can speed up test development, so you don't have to switch between
 editor and command line. If a @transform.sh/@run.sh exists for this file, we run those instead of executing the changed
@@ -33,6 +32,8 @@ Suman allows you to define your own scripts to use when files change, using watc
 your suman.conf.js file. In order to accomplish 2. above, you should use a watch script.
 
 # Examples
+
+Here are some example commands, with a description of what each command does.
 
 ### Command:
 ```bash
