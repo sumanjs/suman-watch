@@ -30,7 +30,7 @@ module.exports = function (obj, cb) {
   process.on('SIGTERM', onSIG);
 
   const projectRoot = obj.projectRoot || su.findProjectRoot(process.cwd());
-  const testSrcDir = process.env.TEST_SRC_DIR;
+  const testSrcDir = process.env['TEST_SRC_DIR'];
 
   async.autoInject({
 
@@ -57,7 +57,7 @@ module.exports = function (obj, cb) {
     startWatching: function (transpileAll, cb) {
 
       let watcher = chokidar.watch(testSrcDir, {
-        ignored: /\/.*target\//,
+        ignored: /\/@target\//,
         persistent: true,
         initial: false
       });
