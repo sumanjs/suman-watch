@@ -3,6 +3,8 @@
   "version": "0.0.1001",
   "description": "Watcher module for Suman project",
   "main": "index.js",
+  "types": "index.d.ts",
+  "typings": "index.d.ts",
   "scripts": {
     "test": "suman"
   },
@@ -28,12 +30,14 @@
   "homepage": "https://github.com/sumanjs/suman-watch#readme",
   "dependencies": {
     "async": "^2.3.0",
+    "chalk": "^1.1.3",
     "chokidar": "^1.6.1",
-    "socket.io": "^1.7.3",
-    "suman-utils": "latest",
-    "suman-browser-polyfills": "latest"
+    "suman-browser-polyfills": "latest",
+    "suman-utils": "latest"
   },
   "devDependencies": {
+    "@types/async": "^2.0.40",
+    "@types/chokidar": "^1.7.0",
     "@types/node": "^7.0.5"
   }
 }

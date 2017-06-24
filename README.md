@@ -80,8 +80,9 @@ A complete list of options is here:
 ```javascript
 {
   watch: {
+    
  
-     options: {
+     per: {
  
        foo: {
          exec: ''
@@ -94,20 +95,20 @@ A complete list of options is here:
  
        bar: {
            exec: ''
-                  include: [],
-                  exclude: [],
-                  confOverride: {
+           include: [],
+           exclude: [],
+           confOverride: {
           
-                  }
+          }
        },
  
        baz: {
           exec: ''
-                 include: [],
-                 exclude: [],
-                 confOverride: {
+          include: [],
+          exclude: [],
+          confOverride: {
          
-                 }
+         }
        }
  
      }

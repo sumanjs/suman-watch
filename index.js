@@ -1,101 +1,100 @@
 'use strict';
-
-//core
-const util = require('util');
-const path = require('path');
-
-//npm
-const async = require('async');
-const su = require('suman-utils');
-let Server = require('socket.io');
-const chokidar = require('chokidar');
-
-//project
-let io = new Server(6975, {});
-let transpile = require('./lib/transpile');
-let execute = require('./lib/execute');
-let transpileAll = require('./lib/transpile-all');
-
-
-////////////////////////////////////////////////////////
-
-module.exports = function (obj, cb) {
-
-  const onSIG = function (){
-     console.log(' => [suman-watch] suman watch is exiting.');
-     process.exit(139);
-  };
-
-  process.on('SIGINT', onSIG);
-  process.on('SIGTERM', onSIG);
-
-  const projectRoot = su.findProjectRoot(process.cwd());
-  const testSrcDir = process.env['TEST_SRC_DIR'];
-
-  async.autoInject({
-
-    getSrcPaths: function (cb) {
-      su.findSumanMarkers(['@run.sh', '@transform.sh'], testSrcDir, [], cb);
-    },
-
-    transpileAll: function (getSrcPaths, cb) {
-
-      const paths = Object.keys(getSrcPaths).filter(function (key) {
-        return getSrcPaths[key]['@transform.sh']; // returns true or undefined
-      })
-      .map(function(k){
-         return path.resolve(k + '/@transform.sh');
-      });
-
-      console.log('paths => ', paths);
-
-      transpileAll(paths, cb);
-
-    },
-
-    startWatching: function (transpileAll, cb) {
-
-      let watcher = chokidar.watch(testSrcDir, {
-        ignored: /\/@target\//,
-        persistent: true,
-        initial: false
-      });
-
-      watcher.once('error', cb);
-      watcher.once('ready', function () {
-        cb(null, {
-          watched: watcher.getWatched()
+Object.defineProperty(exports, "__esModule", { value: true });
+var process = require('suman-browser-polyfills/modules/process');
+var global = require('suman-browser-polyfills/modules/global');
+var util = require("util");
+var path = require("path");
+var logging_1 = require("./lib/logging");
+var async = require("async");
+var suman_utils_1 = require("suman-utils");
+var chokidar = require("chokidar");
+var make_transpile_1 = require("./lib/make-transpile");
+exports.startWatching = function (watchOpts, cb) {
+    var onSIG = function () {
+        console.log(' => [suman-watch] suman watch is exiting.');
+        process.exit(139);
+    };
+    process.on('SIGINT', onSIG);
+    process.on('SIGTERM', onSIG);
+    var projectRoot = suman_utils_1.default.findProjectRoot(process.cwd());
+    var testSrcDir = process.env['TEST_SRC_DIR'];
+    var transpile = make_transpile_1.makeTranspile(watchOpts, projectRoot);
+    async.autoInject({
+        getTransformPaths: function (cb) {
+            if (watchOpts.noTranspile) {
+                logging_1.logInfo('watch process will not get all transform paths, because we are not transpiling.');
+                return process.nextTick(cb);
+            }
+            suman_utils_1.default.findSumanMarkers(['@run.sh', '@transform.sh'], testSrcDir, [], cb);
+        },
+        transpileAll: function (getTransformPaths, cb) {
+            if (watchOpts.noTranspile) {
+                logging_1.logInfo('watch process will not run transpile-all routine, because we are not transpiling.');
+                return process.nextTick(cb);
+            }
+            var paths = Object.keys(getTransformPaths).filter(function (key) {
+                return getTransformPaths[key]['@transform.sh'];
+            })
+                .map(function (k) {
+                return path.resolve(k + '/@transform.sh');
+            });
+            console.log('paths => ', util.inspect(paths));
+            transpileAll(paths, cb);
+        }
+    }, function (err, results) {
+        if (err) {
+            throw err;
+        }
+        console.log(' => Transpilation results:');
+        results.transpileAll.forEach(function (t) {
+            console.log(t);
         });
-      });
-
-      watcher.on('change', function (f) {
-
-        console.log(' => Change => ', f);
-
-        su.findNearestRunAndTransform(projectRoot, f, function (err, ret) {
-          if (ret.transform) {
-            transpile(f, ret);
-          }
-          else {
-            execute(f, ret);
-          }
-
+        var watcher = chokidar.watch(testSrcDir, {
+            ignored: /(\/@target\/|\/node_modules\/)/,
+            persistent: true,
+            ignoreInitial: true
         });
-      });
-
-    }
-
-  }, function (err, results) {
-
-    if (err) {
-      throw err;
-    }
-
-    console.log(' => Transpilation results:');
-    results.transpileAll.forEach(function(t){
-      console.log(t);
+        watcher.on('error', function (e) {
+            logging_1.logError('watcher experienced an error', e.stack || e);
+        });
+        watcher.once('ready', function () {
+            logging_1.logVeryGood('watcher is ready.');
+            console.log('watched paths => ', util.inspect(watcher.getWatched()));
+            cb && cb(null, {
+                watched: watcher.getWatched()
+            });
+        });
+        watcher.on('change', function (f) {
+            logging_1.logInfo('file change event for path => ', f);
+            suman_utils_1.default.findNearestRunAndTransform(projectRoot, f, function (err, ret) {
+                if (err) {
+                    logging_1.logError("error locating @run.sh / @transform.sh for file " + f + ".\n" + err);
+                    return;
+                }
+                transpile(f, ret.transform, function (err) {
+                    if (err) {
+                        logging_1.logError("error running transpile process for file " + f + ".\n" + err);
+                        return;
+                    }
+                    execute(f, ret.run, function (err, result) {
+                        if (err) {
+                            logging_1.logError("error executing corresponding test process for source file " + f + ".\n" + (err.stack || err));
+                            return;
+                        }
+                        var stdout = result.stdout, stderr = result.stderr, code = result.code;
+                        logging_1.logInfo("you corresponding test process for path " + f + ", exited with code " + code);
+                        if (code > 0) {
+                            logging_1.logError("there was an error executing your test with path " + f + ", because the exit code was greater than 0.");
+                        }
+                        if (stderr) {
+                            logging_1.logWarning("the stderr for path " + f + ", is as follows =>\n" + stderr + ".");
+                        }
+                        if (stdout) {
+                            logging_1.logInfo("the stderr for path " + f + ", is as follows =>\n" + stdout + ".");
+                        }
+                    });
+                });
+            });
+        });
     });
-
-  });
-
 };

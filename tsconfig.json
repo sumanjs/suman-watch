@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "declaration": true,
     "baseUrl": ".",
     "paths": {
     },
@@ -13,13 +14,11 @@
     "allowUnreachableCode": true,
     "lib": [
       "es2015",
-      "es2016"
+      "es2016",
+      "es2017"
     ]
   },
   "compileOnSave": false,
-  "include": [
-    "./**/*.ts"
-  ],
   "exclude": [
     "test",
     "node_modules"
