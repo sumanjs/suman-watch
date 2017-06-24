@@ -79,15 +79,49 @@ A complete list of options is here:
 ```javascript
 {
   watch: {
-    
-    patterns :{
-      
-      
-      
-    }
-    
-  }  
-
+ 
+     options: {
+ 
+       foo: {
+         preTransform: '',
+         '@transform': '',
+         postTransform: '',
+         preRun: '',
+         '@run': '',
+         postRun: '',
+         include: [],
+         exclude: [],
+         confOverride: {
+ 
+         }
+       },
+ 
+       bar: {
+         preTransform: '',
+         '@transform': '',
+         postTransform: '',
+         preRun: '',
+         '@run': '',
+         postRun: '',
+         include: [],
+         exclude: [],
+         confOverride: {
+ 
+         }
+       },
+ 
+       baz: {
+         '@run': '',
+         include: [],
+         exclude: [],
+         confOverride: {
+ 
+         }
+       }
+ 
+     }
+ 
+   }
 }
 
 ```
