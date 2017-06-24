@@ -9,6 +9,8 @@ var async = require("async");
 var suman_utils_1 = require("suman-utils");
 var chokidar = require("chokidar");
 var make_transpile_1 = require("./lib/make-transpile");
+var make_execute_1 = require("./lib/make-execute");
+var make_transpile_all_1 = require("./lib/make-transpile-all");
 exports.startWatching = function (watchOpts, cb) {
     var onSIG = function () {
         console.log(' => [suman-watch] suman watch is exiting.');
@@ -19,6 +21,8 @@ exports.startWatching = function (watchOpts, cb) {
     var projectRoot = suman_utils_1.default.findProjectRoot(process.cwd());
     var testSrcDir = process.env['TEST_SRC_DIR'];
     var transpile = make_transpile_1.makeTranspile(watchOpts, projectRoot);
+    var transpileAll = make_transpile_all_1.makeTranspileAll(watchOpts, projectRoot);
+    var execute = make_execute_1.makeExecute(watchOpts, projectRoot);
     async.autoInject({
         getTransformPaths: function (cb) {
             if (watchOpts.noTranspile) {

@@ -24,16 +24,16 @@ import {ISumanWatchOptions} from "../index";
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
-export const makeTranspileAll = function(watchOpts: ISumanWatchOptions){
+export const makeTranspileAll = function(watchOpts: ISumanWatchOptions, projectRoot: string){
 
-  return function (root: string, transformPaths: Array<string>, cb) {
+  return function (transformPaths: Array<string>, cb) {
 
     async.mapLimit(transformPaths, 5, function (t, cb) {
 
       logInfo(' => About to spawn => ', t);
 
       const k = cp.spawn(t, [], {
-        cwd: root,
+        cwd: projectRoot,
         env: Object.assign({}, process.env, {
           SUMAN_CHILD_TEST_PATH: '',
         })

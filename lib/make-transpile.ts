@@ -21,12 +21,12 @@ import {logInfo, logError, logWarning, logVeryGood, logGood} from './logging';
 
 export const makeTranspile = function(watchOpts: ISumanWatchOptions, projectRoot: string){
 
-  return function _transpile(root: string, f: string, transformPath: string, cb: Function) {
+  return function _transpile(f: string, transformPath: string, cb: Function) {
 
     console.log(' => transpiling...', '\n', transformPath);
 
     const k = cp.spawn(transformPath, [], {
-      cwd: root,
+      cwd: projectRoot,
       env: Object.assign({}, process.env, {
         SUMAN_CHILD_TEST_PATH: f
       })

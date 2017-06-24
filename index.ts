@@ -59,9 +59,9 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
 
   const projectRoot = su.findProjectRoot(process.cwd());
   const testSrcDir = process.env['TEST_SRC_DIR'];
-
-
-  const transpile = makeTranspile(watchOpts,projectRoot);
+  const transpile = makeTranspile(watchOpts, projectRoot);
+  const transpileAll = makeTranspileAll(watchOpts, projectRoot);
+  const execute = makeExecute(watchOpts, projectRoot);
 
 
   async.autoInject({
