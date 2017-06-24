@@ -1,0 +1,11 @@
+suman --watch x --watch y
+
+should not cause problems
+
+
+suman --watch x --exec=""
+suman --watch . --exclude="" --include="" --exec=""
+suman --watch-as-per="zam"
+
+
+make sure watch path passed by user does not include a directory below the project

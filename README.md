@@ -84,12 +84,7 @@ A complete list of options is here:
      options: {
  
        foo: {
-         preTransform: '',
-         '@transform': '',
-         postTransform: '',
-         preRun: '',
-         '@run': '',
-         postRun: '',
+         exec: ''
          include: [],
          exclude: [],
          confOverride: {
@@ -98,26 +93,21 @@ A complete list of options is here:
        },
  
        bar: {
-         preTransform: '',
-         '@transform': '',
-         postTransform: '',
-         preRun: '',
-         '@run': '',
-         postRun: '',
-         include: [],
-         exclude: [],
-         confOverride: {
- 
-         }
+           exec: ''
+                  include: [],
+                  exclude: [],
+                  confOverride: {
+          
+                  }
        },
  
        baz: {
-         '@run': '',
-         include: [],
-         exclude: [],
-         confOverride: {
- 
-         }
+          exec: ''
+                 include: [],
+                 exclude: [],
+                 confOverride: {
+         
+                 }
        }
  
      }

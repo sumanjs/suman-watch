@@ -1,48 +1,30 @@
-var zoo = {
-
+var x = {
   watch: {
 
     options: {
 
       foo: {
-        preTransform: '',
-        '@transform': '',
-        postTransform: '',
-        preRun: '',
-        '@run': '',
-        postRun: '',
+        exec: '',
         include: [],
         exclude: [],
-        confOverride: {
-
-        }
+        confOverride: {}
       },
 
       bar: {
-        preTransform: '',
-        '@transform': '',
-        postTransform: '',
-        preRun: '',
-        '@run': '',
-        postRun: '',
+        exec: '',
         include: [],
         exclude: [],
-        confOverride: {
-
-        }
+        confOverride: {}
       },
 
       baz: {
-        '@run': '',
+        exec: '',
         include: [],
         exclude: [],
-        confOverride: {
-
-        }
+        confOverride: {}
       }
 
     }
 
   }
-
 };
