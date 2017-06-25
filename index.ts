@@ -89,7 +89,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
             return path.resolve(k + '/@transform.sh');
           });
 
-        console.log('paths => ', util.inspect(paths));
+        console.log('transform paths => \n', paths);
 
         transpileAll(paths, cb);
 

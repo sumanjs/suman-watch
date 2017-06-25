@@ -42,7 +42,7 @@ exports.startWatching = function (watchOpts, cb) {
                 .map(function (k) {
                 return path.resolve(k + '/@transform.sh');
             });
-            console.log('paths => ', util.inspect(paths));
+            console.log('transform paths => \n', paths);
             transpileAll(paths, cb);
         }
     }, function (err, results) {
