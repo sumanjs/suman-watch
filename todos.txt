@@ -14,3 +14,5 @@ process.stdin should listen for rr for "rerun", and this will rerun the most rec
 
 // compile TS file to node
 https://github.com/TypeStrong/ts-node
+
+// move the transpilation code to suman-utils, so that suman can reference it too?

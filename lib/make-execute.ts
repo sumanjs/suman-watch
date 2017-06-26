@@ -37,7 +37,8 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
           cwd: projectRoot,
           stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
           env: Object.assign({}, process.env, {
-            SUMAN_TEST_PATHS: JSON.stringify([f])
+            SUMAN_TEST_PATHS: JSON.stringify([f]),
+            SUMAN_ALWAYS_INHERIT_STDIO: 'yes'
           })
         });
 
@@ -50,7 +51,8 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
           cwd: projectRoot,
           stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
           env: Object.assign({}, process.env, {
-            SUMAN_TEST_PATHS: JSON.stringify([f])
+            SUMAN_TEST_PATHS: JSON.stringify([f]),
+            SUMAN_ALWAYS_INHERIT_STDIO: 'yes'
           })
         });
       }
