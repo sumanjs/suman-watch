@@ -13,7 +13,7 @@ import su from 'suman-utils';
 //project
 import {workerPool} from './worker-pool';
 
-/////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRoot: string) {
 
@@ -54,8 +54,6 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
           })
         });
       }
-
-
 
       let stdout = '';
       k.stdout.setEncoding('utf8');

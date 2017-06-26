@@ -1,8 +1,5 @@
-
-
 import {Pool} from "poolio";
 import * as path from 'path';
-
 
 /////////////////////////////////////////////////
 
@@ -12,10 +9,8 @@ const pool = new Pool({
   oneTimeOnly: true
 });
 
-
-pool.on('error', function(e: Error){
-   console.error(e.stack || e);
+pool.on('error', function (e: Error) {
+  console.error(e.stack || e);
 });
-
 
 export const workerPool = pool;
