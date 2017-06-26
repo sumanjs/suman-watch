@@ -18,7 +18,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
 
     const cb = su.once(this, $cb);
 
-    su.makePathExecutable(runPath, function (err: Error) {
+    su.makePathExecutable(runPath || f, function (err: Error) {
 
       if (err) {
         return cb(err);
@@ -27,9 +27,12 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
       let k;
 
       if (runPath) {
+
+        console.log('runPath => ', runPath);
+
         k = cp.spawn(runPath, [], {
           cwd: projectRoot,
-          stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
+          stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
           env: Object.assign({}, process.env, {
             SUMAN_TEST_PATHS: JSON.stringify([f])
           })
@@ -37,23 +40,30 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
 
       }
       else {
+
+        console.log('file path  => ', f);
+
         k = cp.spawn(f, [], {
           cwd: projectRoot,
-          stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
+          stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
           env: Object.assign({}, process.env, {
             SUMAN_TEST_PATHS: JSON.stringify([f])
           })
         });
       }
 
+
+
       let stdout = '';
       k.stdout.setEncoding('utf8');
+      k.stdout.pipe(process.stdout);
       k.stdout.on('data', function (d: string) {
         stdout += d;
       });
 
       let stderr = '';
       k.stderr.setEncoding('utf8');
+      k.stderr.pipe(process.stderr);
       k.stderr.on('data', function (d: string) {
         stderr += d;
       });

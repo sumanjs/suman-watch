@@ -1,6 +1,6 @@
 'use strict';
 
-// typescript imports
+//typescript imports
 import {IMapCallback, IMap} from 'suman-utils';
 
 //polyfills
@@ -26,7 +26,7 @@ import {makeTranspile} from './lib/make-transpile';
 import {makeExecute} from './lib/make-execute';
 import {makeTranspileAll} from './lib/make-transpile-all';
 
-////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////
 
 export interface ISumanWatchPerItem {
 
@@ -57,7 +57,7 @@ export interface ISumanTransformResult {
 export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Function): void {
 
   const onSIG = function () {
-    console.log(' => [suman-watch] suman watch is exiting.');
+    logInfo('suman watch is exiting.');
     process.exit(139);
   };
 
@@ -106,7 +106,8 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
         throw err;
       }
 
-      console.log(' => Transpilation results:');
+      console.log('\n');
+      logGood('Transpilation results:');
       results.transpileAll.forEach(function (t: ISumanTransformResult) {
         if (t.code > 0) {
           logError('transform result error => ', util.inspect(t));
@@ -117,7 +118,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
       });
 
       let watcher = chokidar.watch(testSrcDir, {
-        ignored: /(\/@target\/|\/node_modules\/)/,
+        ignored: /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$)/,
         persistent: true,
         ignoreInitial: true
       });
@@ -128,7 +129,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
 
       watcher.once('ready', function () {
         logVeryGood('watcher is ready.');
-        console.log('watched paths => ', util.inspect(watcher.getWatched()));
+        logVeryGood('watched paths => \n', util.inspect(watcher.getWatched()));
         cb && cb(null, {
           watched: watcher.getWatched()
         });

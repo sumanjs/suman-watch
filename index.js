@@ -13,7 +13,7 @@ var make_execute_1 = require("./lib/make-execute");
 var make_transpile_all_1 = require("./lib/make-transpile-all");
 exports.startWatching = function (watchOpts, cb) {
     var onSIG = function () {
-        console.log(' => [suman-watch] suman watch is exiting.');
+        logging_1.logInfo('suman watch is exiting.');
         process.exit(139);
     };
     process.on('SIGINT', onSIG);
@@ -48,7 +48,8 @@ exports.startWatching = function (watchOpts, cb) {
         if (err) {
             throw err;
         }
-        console.log(' => Transpilation results:');
+        console.log('\n');
+        logging_1.logGood('Transpilation results:');
         results.transpileAll.forEach(function (t) {
             if (t.code > 0) {
                 logging_1.logError('transform result error => ', util.inspect(t));
@@ -58,7 +59,7 @@ exports.startWatching = function (watchOpts, cb) {
             }
         });
         var watcher = chokidar.watch(testSrcDir, {
-            ignored: /(\/@target\/|\/node_modules\/)/,
+            ignored: /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$)/,
             persistent: true,
             ignoreInitial: true
         });
@@ -67,7 +68,7 @@ exports.startWatching = function (watchOpts, cb) {
         });
         watcher.once('ready', function () {
             logging_1.logVeryGood('watcher is ready.');
-            console.log('watched paths => ', util.inspect(watcher.getWatched()));
+            logging_1.logVeryGood('watched paths => \n', util.inspect(watcher.getWatched()));
             cb && cb(null, {
                 watched: watcher.getWatched()
             });

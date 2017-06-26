@@ -27,52 +27,61 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
 
     const cb = su.once(this, $cb);
 
-    const k = cp.spawn(transformPath, [], {
-      cwd: projectRoot,
-      env: Object.assign({}, process.env, {
-        SUMAN_TEST_PATHS: JSON.stringify([f]),
-        SUMAN_TRANSFORM_ALL_SOURCES: '' // overwrite just to be sure
-      })
-    });
+    if(!transformPath){
+      return process.nextTick(cb);
+    }
 
-    k.once('error', function (e: Error) {
-      logError(`transform process experienced spawn error for path "${f}" =>\n${e.stack || e}.`)
-    });
+    su.makePathExecutable(transformPath, function (err: Error) {
 
-    let stdout = '';
-    k.stdout.setEncoding('utf8');
-    k.stdout.on('data', function (d: string) {
-      stdout += d;
-    });
+      const k = cp.spawn(transformPath, [], {
+        cwd: projectRoot,
+        stdio: ['ignore','pipe', 'pipe', 'ipc'],
+        env: Object.assign({}, process.env, {
+          SUMAN_TEST_PATHS: JSON.stringify([f]),
+          SUMAN_TRANSFORM_ALL_SOURCES: '' // overwrite just to be sure
+        })
+      });
 
-    let stderr = '';
-    k.stderr.setEncoding('utf8');
-    k.stderr.on('data', function (d: string) {
-      stderr += d;
-    });
+      k.once('error', function (e: Error) {
+        logError(`transform process experienced spawn error for path "${f}" =>\n${e.stack || e}.`)
+      });
 
-    const to = setTimeout(function () {
-      cb(new Error(`transform process timed out for path "${f}".`), {
-        stdout: String(stdout).trim(),
-        stderr: String(stderr).trim()
-      })
-    }, 1000000);
+      let stdout = '';
+      k.stdout.setEncoding('utf8');
+      k.stdout.on('data', function (d: string) {
+        stdout += d;
+      });
 
-    k.once('exit', function (code: number) {
+      let stderr = '';
+      k.stderr.setEncoding('utf8');
+      k.stderr.on('data', function (d: string) {
+        stderr += d;
+      });
 
-      clearTimeout(to);
+      const to = setTimeout(function () {
+        cb(new Error(`transform process timed out for path "${f}".`), {
+          stdout: String(stdout).trim(),
+          stderr: String(stderr).trim()
+        })
+      }, 1000000);
 
-      let err;
-      if (code > 0) {
-        console.error(' => There was an error transforming your tests.');
-        err = new Error(`transform process at path "${f}" exited with non-zero exit code =>\n${stderr}`);
-      }
+      k.once('exit', function (code: number) {
 
-      cb(err, {
-        code,
-        path: f,
-        stdout: String(stdout).trim(),
-        stderr: String(stderr).trim()
+        clearTimeout(to);
+
+        let err;
+        if (code > 0) {
+          console.error(' => There was an error transforming your tests.');
+          err = new Error(`transform process at path "${f}" exited with non-zero exit code =>\n${stderr}`);
+        }
+
+        cb(err, {
+          code,
+          path: f,
+          stdout: String(stdout).trim(),
+          stderr: String(stderr).trim()
+        });
+
       });
 
     });
