@@ -26,27 +26,52 @@ import {ISumanWatchOptions} from "../index";
 
 export const makeTranspileAll = function(watchOpts: ISumanWatchOptions, projectRoot: string){
 
-  return function (transformPaths: Array<string>, cb) {
+  return function (transformPaths: Array<string>, cb: Function) {
 
-    async.mapLimit(transformPaths, 5, function (t, cb) {
+    async.mapLimit(transformPaths, 5, function (t: string, $cb: Function) {
 
-      logInfo(' => About to spawn => ', t);
+      const cb = su.once(this, $cb);
 
       const k = cp.spawn(t, [], {
         cwd: projectRoot,
         env: Object.assign({}, process.env, {
-          SUMAN_CHILD_TEST_PATH: '',
+          SUMAN_TEST_PATHS: '',  //  we should overwrite this var, just to be sure
+          SUMAN_TRANSFORM_ALL_SOURCES: 'yes'
         })
       });
+
+      const to = setTimeout(function () {
+        cb(new Error(`transform all process timed out for the @transform.sh file at path "${t}".`), {
+          stdout: String(stdout).trim(),
+          stderr: String(stderr).trim()
+        })
+      }, 1000000);
 
       k.once('error', function (e) {
         logError(`spawn error for path => "${t}" =>\n${e.stack || e}`);
       });
 
+      let stdout = '';
+      k.stdout.setEncoding('utf8');
+      k.stdout.on('data', function (d: string) {
+        stdout += d;
+      });
+
+      let stderr = '';
+      k.stderr.setEncoding('utf8');
+      k.stderr.on('data', function (d: string) {
+        stderr += d;
+      });
+
       k.once('exit', function (code) {
+
+        clearTimeout(to);
+
         cb(null, {
           path: t,
-          code: code
+          code: code,
+          stdout: String(stdout).trim(),
+          stderr: String(stderr).trim()
         });
       });
 

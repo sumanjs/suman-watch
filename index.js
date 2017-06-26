@@ -42,7 +42,6 @@ exports.startWatching = function (watchOpts, cb) {
                 .map(function (k) {
                 return path.resolve(k + '/@transform.sh');
             });
-            console.log('transform paths => \n', paths);
             transpileAll(paths, cb);
         }
     }, function (err, results) {
@@ -51,7 +50,12 @@ exports.startWatching = function (watchOpts, cb) {
         }
         console.log(' => Transpilation results:');
         results.transpileAll.forEach(function (t) {
-            console.log(t);
+            if (t.code > 0) {
+                logging_1.logError('transform result error => ', util.inspect(t));
+            }
+            else {
+                logging_1.logGood('transform result => ', util.inspect(t));
+            }
         });
         var watcher = chokidar.watch(testSrcDir, {
             ignored: /(\/@target\/|\/node_modules\/)/,

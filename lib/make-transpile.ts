@@ -13,26 +13,29 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as cp from 'child_process';
 
+//npm
+import su from 'suman-utils';
+
 //project
 import {logInfo, logError, logWarning, logVeryGood, logGood} from './logging';
 
+///////////////////////////////////////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////
+export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoot: string) {
 
-export const makeTranspile = function(watchOpts: ISumanWatchOptions, projectRoot: string){
+  return function transpile(f: string, transformPath: string, $cb: Function) {
 
-  return function _transpile(f: string, transformPath: string, cb: Function) {
-
-    console.log(' => transpiling...', '\n', transformPath);
+    const cb = su.once(this, $cb);
 
     const k = cp.spawn(transformPath, [], {
       cwd: projectRoot,
       env: Object.assign({}, process.env, {
-        SUMAN_CHILD_TEST_PATH: f
+        SUMAN_TEST_PATHS: JSON.stringify([f]),
+        SUMAN_TRANSFORM_ALL_SOURCES: '' // overwrite just to be sure
       })
     });
 
-    k.once('error', function(e: Error){
+    k.once('error', function (e: Error) {
       logError(`transform process experienced spawn error for path "${f}" =>\n${e.stack || e}.`)
     });
 
@@ -67,6 +70,7 @@ export const makeTranspile = function(watchOpts: ISumanWatchOptions, projectRoot
 
       cb(err, {
         code,
+        path: f,
         stdout: String(stdout).trim(),
         stderr: String(stderr).trim()
       });

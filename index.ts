@@ -45,6 +45,13 @@ export interface ISumanWatchOptions {
   watchPer?: ISumanWatchPerItem
 }
 
+export interface ISumanTransformResult {
+  stdout: string,
+  stderr: string,
+  code: number,
+  path: string
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 
 export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Function): void {
@@ -62,7 +69,6 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
   const transpile = makeTranspile(watchOpts, projectRoot);
   const transpileAll = makeTranspileAll(watchOpts, projectRoot);
   const execute = makeExecute(watchOpts, projectRoot);
-
 
   async.autoInject({
 
@@ -89,8 +95,6 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
             return path.resolve(k + '/@transform.sh');
           });
 
-        console.log('transform paths => \n', paths);
-
         transpileAll(paths, cb);
 
       }
@@ -103,8 +107,13 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
       }
 
       console.log(' => Transpilation results:');
-      results.transpileAll.forEach(function (t: string) {
-        console.log(t);
+      results.transpileAll.forEach(function (t: ISumanTransformResult) {
+        if (t.code > 0) {
+          logError('transform result error => ', util.inspect(t));
+        }
+        else {
+          logGood('transform result => ', util.inspect(t));
+        }
       });
 
       let watcher = chokidar.watch(testSrcDir, {

@@ -14,7 +14,9 @@ import su from 'suman-utils';
 
 export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRoot: string) {
 
-  return function (f: string, runPath: string, cb: Function) {
+  return function (f: string, runPath: string, $cb: Function) {
+
+    const cb = su.once(this, $cb);
 
     su.makePathExecutable(runPath, function (err: Error) {
 
@@ -29,22 +31,17 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
           cwd: projectRoot,
           stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
           env: Object.assign({}, process.env, {
-            SUMAN_CHILD_TEST_PATH: f
+            SUMAN_TEST_PATHS: JSON.stringify([f])
           })
         });
 
-        // // TODO: make run.sh file executable first
-        // k.stdin.write('\n' + `suman --runner ${toBeRun} --inherit-stdio --force-match` + '\n');
-        // process.nextTick(function () {
-        //   k.stdin.end();
-        // });
       }
       else {
         k = cp.spawn(f, [], {
           cwd: projectRoot,
           stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
           env: Object.assign({}, process.env, {
-            SUMAN_CHILD_TEST_PATH: f
+            SUMAN_TEST_PATHS: JSON.stringify([f])
           })
         });
       }
@@ -61,9 +58,11 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
         stderr += d;
       });
 
-      k.once('close', function (code: number) {
+      k.once('exit', function (code: number) {
 
         cb(null, {
+          path: f,
+          runPath,
           code,
           stdout: String(stdout).trim(),
           stderr: String(stderr).trim()

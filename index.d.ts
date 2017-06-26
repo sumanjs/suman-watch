@@ -11,4 +11,10 @@ export interface ISumanWatchOptions {
     noRun?: boolean;
     watchPer?: ISumanWatchPerItem;
 }
+export interface ISumanTransformResult {
+    stdout: string;
+    stderr: string;
+    code: number;
+    path: string;
+}
 export declare const startWatching: (watchOpts: ISumanWatchOptions, cb: Function) => void;
