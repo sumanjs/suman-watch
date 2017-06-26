@@ -13,6 +13,7 @@
     "suman-events",
     "suman-debug",
     "suman",
+    "poolio",
     "suman-browser-polyfills"
   ]
 }

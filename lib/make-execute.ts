@@ -10,6 +10,9 @@ import * as fs from 'fs';
 //npm
 import su from 'suman-utils';
 
+//project
+import {workerPool} from './worker-pool';
+
 /////////////////////////////////////////////
 
 export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRoot: string) {

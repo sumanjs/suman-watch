@@ -20,6 +20,7 @@ import {logInfo, logError, logWarning, logVeryGood, logGood} from './lib/logging
 import * as async from 'async';
 import su from 'suman-utils';
 import * as chokidar from 'chokidar';
+import {Pool} from 'poolio';
 
 //project
 import {makeTranspile} from './lib/make-transpile';
@@ -63,6 +64,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
 
   process.on('SIGINT', onSIG);
   process.on('SIGTERM', onSIG);
+
 
   const projectRoot = su.findProjectRoot(process.cwd());
   const testSrcDir = process.env['TEST_SRC_DIR'];
