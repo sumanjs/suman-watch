@@ -1,7 +1,7 @@
 'use strict';
 
 //typescript imports
-import {IMapCallback, IMap} from 'suman-utils';
+import {IMapCallback, IMap, INearestRunAndTransformRet} from 'suman-utils';
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -71,7 +71,6 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
   process.on('SIGINT', onSIG);
   process.on('SIGTERM', onSIG);
 
-
   const projectRoot = su.findProjectRoot(process.cwd());
   const testSrcDir = process.env['TEST_SRC_DIR'];
   const transpile = makeTranspile(watchOpts, projectRoot);
@@ -84,7 +83,6 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
         if (watchOpts.noTranspile) {
           logInfo('watch process will not get all transform paths, because we are not transpiling.');
           return process.nextTick(cb);
-
         }
         su.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testSrcDir, [], cb);
       },
@@ -96,24 +94,18 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
           return process.nextTick(cb);
         }
 
-        // const paths = Object.keys(getTransformPaths).filter(function (key) {
-        //     let ret;
-        //     return getTransformPaths[key]['@transform.sh']; // returns true or undefined
-        //   })
-        //   .map(function (k) {
-        //     return path.resolve(k + '/@transform.sh');
-        //   });
-
         const paths = Object.keys(getTransformPaths).map(function (key) {
-            if(getTransformPaths[key]['@transform.sh']){
+
+            if (getTransformPaths[key]['@transform.sh']) {
               return {
                 cwd: getTransformPaths[key],
                 basePath: path.resolve(key + '/@transform.sh'),
                 bashFilePath: path.resolve(key + '/@transform.sh')
               };
             }
-            if(getTransformPaths[key]['@config.json']){
-              try{
+
+            if (getTransformPaths[key]['@config.json']) {
+              try {
                 const config = require(path.resolve(key + '/@config.json'));
                 const plugin = config['@transform']['plugin']['value'];
                 return {
@@ -122,14 +114,12 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
                   bashFilePath: require(plugin).getTransformPath()
                 };
               }
-              catch(err){
-                console.error(err.stack || err);
+              catch (err) {
+                logError(err.stack || err);
               }
             }
           })
           .filter(i => i);
-
-        console.log('going to transform against these paths => ', paths);
 
         transpileAll(paths, cb);
 
@@ -143,18 +133,25 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
       }
 
       console.log('\n');
-      logGood('Transpilation results:');
+      logGood('Transpilation results:\n');
       results.transpileAll.forEach(function (t: ISumanTransformResult) {
         if (t.code > 0) {
           logError('transform result error => ', util.inspect(t));
         }
         else {
-          logGood('transform result => ', util.inspect(t));
+          logGood(`transform result for => ${t.path.basePath}`);
+          String(t.stdout).split('\n').filter(i => i).forEach(function (l) {
+            logGood('stdout:', l);
+          });
+          String(t.stderr).split('\n').filter(i => i).forEach(function (l) {
+            logWarning('stderr:', l);
+          });
+          console.log('\n');
         }
       });
 
       let watcher = chokidar.watch(testSrcDir, {
-        ignored: /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$)/,
+        ignored: /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/,
         persistent: true,
         ignoreInitial: true
       });
@@ -165,9 +162,17 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
 
       watcher.once('ready', function () {
         logVeryGood('watcher is ready.');
-        logVeryGood('watched paths => \n', util.inspect(watcher.getWatched()));
+
+        let watchCount = 0;
+        let watched = watcher.getWatched();
+
+        Object.keys(watched).forEach(function (k) {
+          watchCount += watched[k].length;
+        });
+
+        logVeryGood('number of files being watched by suman-watch => ', watchCount);
         cb && cb(null, {
-          watched: watcher.getWatched()
+          watched
         });
       });
 
@@ -175,21 +180,21 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
 
         logInfo('file change event for path => ', f);
 
-        su.findNearestRunAndTransform(projectRoot, f, function (err: Error, ret) {
+        su.findNearestRunAndTransform(projectRoot, f, function (err: Error, ret: INearestRunAndTransformRet) {
 
           if (err) {
             logError(`error locating @run.sh / @transform.sh for file ${f}.\n${err}`);
             return;
           }
 
-          transpile(f, ret.transform, function (err: Error) {
+          transpile(f, ret, function (err: Error) {
 
             if (err) {
               logError(`error running transpile process for file ${f}.\n${err}`);
               return;
             }
 
-            execute(f, ret.run, function (err: Error, result: ISumanWatchResult) {
+            execute(f, ret, function (err: Error, result: ISumanWatchResult) {
 
               if (err) {
                 logError(`error executing corresponding test process for source file ${f}.\n${err.stack || err}`);

@@ -8,18 +8,42 @@ import * as cp from 'child_process';
 import * as fs from 'fs';
 
 //npm
-import su from 'suman-utils';
+import su, {INearestRunAndTransformRet} from 'suman-utils';
 
 //project
 import {workerPool} from './worker-pool';
+import {logInfo, logError, logWarning, logVeryGood, logGood} from './logging';
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRoot: string) {
 
-  return function (f: string, runPath: string, $cb: Function) {
+  return function (f: string, runData: INearestRunAndTransformRet, $cb: Function) {
 
     const cb = su.once(this, $cb);
+    let runPath: string;
+
+    // we do a lazy check to see if the @config file is closer to the source file, by simply comparing
+    // filepath length
+    const runLength = runData.run ? runData.run.length : 0;
+    if (runData.config && runData.config.length > runLength) {
+      try {
+        const config = require(runData.config);
+        const plugin = config['@run']['plugin']['value'];
+        if (plugin) {
+          runPath = require(plugin).getRunPath();
+        }
+      }
+      catch (err) {
+        logError(err.stack || err);
+      }
+    }
+
+    if (!runPath) {
+      if (runData.run) {
+        runPath = runData.run;
+      }
+    }
 
     su.makePathExecutable(runPath || f, function (err: Error) {
 
@@ -33,7 +57,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
 
         console.log('runPath => ', runPath);
 
-        k = cp.spawn(runPath, [], {
+        k = cp.spawn('bash', [], {
           cwd: projectRoot,
           stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
           env: Object.assign({}, process.env, {
@@ -41,6 +65,8 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
             SUMAN_ALWAYS_INHERIT_STDIO: 'yes'
           })
         });
+
+        fs.createReadStream(runPath).pipe(k.stdin);
 
       }
       else {

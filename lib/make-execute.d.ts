@@ -1,2 +1,3 @@
 import { ISumanWatchOptions } from "../index";
-export declare const makeExecute: (watchOptions: ISumanWatchOptions, projectRoot: string) => (f: string, runPath: string, $cb: Function) => void;
+import { INearestRunAndTransformRet } from 'suman-utils';
+export declare const makeExecute: (watchOptions: ISumanWatchOptions, projectRoot: string) => (f: string, runData: INearestRunAndTransformRet, $cb: Function) => void;

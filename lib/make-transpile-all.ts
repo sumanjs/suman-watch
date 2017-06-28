@@ -42,7 +42,7 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
           return cb(err);
         }
 
-        console.log('results => ', results);
+        // console.log('results => ', results);
 
         fs.chmod(t.bashFilePath, '777', function (err: Error) {
 
@@ -54,24 +54,25 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
             return results.indexOf(r) === i;
           });
 
-          console.log('uniqueResults => ', uniqueResults);
+          // console.log('uniqueResults => ', uniqueResults);
 
           const k = cp.spawn('bash', [], {
             cwd: t.cwd,
             env: Object.assign({}, process.env, {
-              SUMAN_ALL_APPLICABLE_TEST_PATHS: JSON.stringify(uniqueResults),
+              SUMAN_TEST_PATHS: JSON.stringify(uniqueResults),
               SUMAN_TRANSFORM_ALL_SOURCES: 'yes'
             })
-
           });
 
           fs.createReadStream(t.bashFilePath).pipe(k.stdin);
 
           const to = setTimeout(function () {
+            k.kill('SIGINT');
             cb(new Error(`transform all process timed out for the @transform.sh file at path "${t}".`), {
+              path: t,
               stdout: String(stdout).trim(),
               stderr: String(stderr).trim()
-            })
+            });
           }, 1000000);
 
           k.once('error', function (e) {
@@ -90,8 +91,8 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
             stderr += d;
           });
 
-          k.stdout.pipe(process.stdout);
-          k.stderr.pipe(process.stderr);
+          // k.stdout.pipe(process.stdout);
+          // k.stderr.pipe(process.stderr);
 
           k.once('exit', function (code) {
 

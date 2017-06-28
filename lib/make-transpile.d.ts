@@ -1,2 +1,3 @@
 import { ISumanWatchOptions } from "../index";
-export declare const makeTranspile: (watchOpts: ISumanWatchOptions, projectRoot: string) => (f: string, transformPath: string, $cb: Function) => any;
+import { INearestRunAndTransformRet } from 'suman-utils';
+export declare const makeTranspile: (watchOpts: ISumanWatchOptions, projectRoot: string) => (f: string, transformData: INearestRunAndTransformRet, $cb: Function) => any;

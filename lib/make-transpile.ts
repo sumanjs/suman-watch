@@ -8,13 +8,14 @@ const process = require('suman-browser-polyfills/modules/process');
 const global = require('suman-browser-polyfills/modules/global');
 
 //core
+import * as fs from 'fs';
 import * as util from 'util';
 import * as assert from 'assert';
 import * as path from 'path';
 import * as cp from 'child_process';
 
 //npm
-import su from 'suman-utils';
+import su, {INearestRunAndTransformRet} from 'suman-utils';
 
 //project
 import {logInfo, logError, logWarning, logVeryGood, logGood} from './logging';
@@ -23,24 +24,57 @@ import {logInfo, logError, logWarning, logVeryGood, logGood} from './logging';
 
 export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoot: string) {
 
-  return function transpile(f: string, transformPath: string, $cb: Function) {
+  return function transpile(f: string, transformData: INearestRunAndTransformRet, $cb: Function) {
 
     const cb = su.once(this, $cb);
 
-    if(!transformPath){
-      return process.nextTick(cb);
+    // if(!transformPath){
+    //   return process.nextTick(cb);
+    // }
+
+    let transformPath: string;
+
+    // we do a lazy check to see if the @config file is closer to the source file, by simply comparing
+    // filepath length
+    const transformLength = transformData.transform ? transformData.transform.length : 0;
+    if (transformData.config && transformData.config.length > transformLength) {
+      try {
+        const config = require(transformData.config);
+        const plugin = config['@transform']['plugin']['value'];
+        if (plugin) {
+          transformPath = require(plugin).getRunPath();
+        }
+      }
+      catch (err) {
+        logError(err.stack || err);
+      }
+    }
+
+    if (!transformPath) {
+      if (transformData.transform) {
+        transformPath = transformData.transform;
+      }
+      else {
+        return process.nextTick(cb, new Error('no transform path could be found.'));
+      }
     }
 
     su.makePathExecutable(transformPath, function (err: Error) {
 
-      const k = cp.spawn(transformPath, [], {
+      if (err) {
+        return cb(err);
+      }
+
+      const k = cp.spawn('bash', [], {
         cwd: projectRoot,
-        stdio: ['ignore','pipe', 'pipe', 'ipc'],
+        stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
         env: Object.assign({}, process.env, {
           SUMAN_TEST_PATHS: JSON.stringify([f]),
-          SUMAN_TRANSFORM_ALL_SOURCES: '' // overwrite just to be sure
+          SUMAN_TRANSFORM_ALL_SOURCES: 'no'
         })
       });
+
+      fs.createReadStream(transformPath).pipe(k.stdin);
 
       k.once('error', function (e: Error) {
         logError(`transform process experienced spawn error for path "${f}" =>\n${e.stack || e}.`)

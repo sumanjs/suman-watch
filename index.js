@@ -55,12 +55,11 @@ exports.startWatching = function (watchOpts, cb) {
                         };
                     }
                     catch (err) {
-                        console.error(err.stack || err);
+                        logging_1.logError(err.stack || err);
                     }
                 }
             })
                 .filter(function (i) { return i; });
-            console.log('going to transform against these paths => ', paths);
             transpileAll(paths, cb);
         }
     }, function (err, results) {
@@ -68,17 +67,24 @@ exports.startWatching = function (watchOpts, cb) {
             throw err;
         }
         console.log('\n');
-        logging_1.logGood('Transpilation results:');
+        logging_1.logGood('Transpilation results:\n');
         results.transpileAll.forEach(function (t) {
             if (t.code > 0) {
                 logging_1.logError('transform result error => ', util.inspect(t));
             }
             else {
-                logging_1.logGood('transform result => ', util.inspect(t));
+                logging_1.logGood("transform result for => " + t.path.basePath);
+                String(t.stdout).split('\n').filter(function (i) { return i; }).forEach(function (l) {
+                    logging_1.logGood('stdout:', l);
+                });
+                String(t.stderr).split('\n').filter(function (i) { return i; }).forEach(function (l) {
+                    logging_1.logWarning('stderr:', l);
+                });
+                console.log('\n');
             }
         });
         var watcher = chokidar.watch(testSrcDir, {
-            ignored: /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$)/,
+            ignored: /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/,
             persistent: true,
             ignoreInitial: true
         });
@@ -87,9 +93,14 @@ exports.startWatching = function (watchOpts, cb) {
         });
         watcher.once('ready', function () {
             logging_1.logVeryGood('watcher is ready.');
-            logging_1.logVeryGood('watched paths => \n', util.inspect(watcher.getWatched()));
+            var watchCount = 0;
+            var watched = watcher.getWatched();
+            Object.keys(watched).forEach(function (k) {
+                watchCount += watched[k].length;
+            });
+            logging_1.logVeryGood('number of files being watched by suman-watch => ', watchCount);
             cb && cb(null, {
-                watched: watcher.getWatched()
+                watched: watched
             });
         });
         watcher.on('change', function (f) {
@@ -99,12 +110,12 @@ exports.startWatching = function (watchOpts, cb) {
                     logging_1.logError("error locating @run.sh / @transform.sh for file " + f + ".\n" + err);
                     return;
                 }
-                transpile(f, ret.transform, function (err) {
+                transpile(f, ret, function (err) {
                     if (err) {
                         logging_1.logError("error running transpile process for file " + f + ".\n" + err);
                         return;
                     }
-                    execute(f, ret.run, function (err, result) {
+                    execute(f, ret, function (err, result) {
                         if (err) {
                             logging_1.logError("error executing corresponding test process for source file " + f + ".\n" + (err.stack || err));
                             return;

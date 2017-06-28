@@ -8,7 +8,7 @@ const Test = suman.init(module);
 
 Test.create(function (it: ItFn) {
 
-  5..times(function () {
+  (5 as Number).times(function () {
 
     it('details', t => {
 
