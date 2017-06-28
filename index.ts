@@ -53,6 +53,12 @@ export interface ISumanTransformResult {
   path: string
 }
 
+export interface ISumanTranspileData {
+  cwd: string,
+  basePath: string,
+  bashFilePath: string
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 
 export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Function): void {
@@ -74,28 +80,56 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
 
   async.autoInject({
 
-      getTransformPaths: function (cb: Function) {
+      getTransformPaths: function (cb: AsyncResultArrayCallback<Error, Iterable<any>>) {
         if (watchOpts.noTranspile) {
           logInfo('watch process will not get all transform paths, because we are not transpiling.');
           return process.nextTick(cb);
 
         }
-        su.findSumanMarkers(['@run.sh', '@transform.sh'], testSrcDir, [], cb);
+        su.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testSrcDir, [], cb);
       },
 
-      transpileAll: function (getTransformPaths: IMap, cb: Function) {
+      transpileAll: function (getTransformPaths: IMap, cb: AsyncResultArrayCallback<Error, Iterable<any>>) {
 
         if (watchOpts.noTranspile) {
           logInfo('watch process will not run transpile-all routine, because we are not transpiling.');
           return process.nextTick(cb);
         }
 
-        const paths = Object.keys(getTransformPaths).filter(function (key) {
-            return getTransformPaths[key]['@transform.sh']; // returns true or undefined
+        // const paths = Object.keys(getTransformPaths).filter(function (key) {
+        //     let ret;
+        //     return getTransformPaths[key]['@transform.sh']; // returns true or undefined
+        //   })
+        //   .map(function (k) {
+        //     return path.resolve(k + '/@transform.sh');
+        //   });
+
+        const paths = Object.keys(getTransformPaths).map(function (key) {
+            if(getTransformPaths[key]['@transform.sh']){
+              return {
+                cwd: getTransformPaths[key],
+                basePath: path.resolve(key + '/@transform.sh'),
+                bashFilePath: path.resolve(key + '/@transform.sh')
+              };
+            }
+            if(getTransformPaths[key]['@config.json']){
+              try{
+                const config = require(path.resolve(key + '/@config.json'));
+                const plugin = config['@transform']['plugin']['value'];
+                return {
+                  cwd: getTransformPaths[key],
+                  basePath: path.resolve(key + '/@config.json'),
+                  bashFilePath: require(plugin).getTransformPath()
+                };
+              }
+              catch(err){
+                console.error(err.stack || err);
+              }
+            }
           })
-          .map(function (k) {
-            return path.resolve(k + '/@transform.sh');
-          });
+          .filter(i => i);
+
+        console.log('going to transform against these paths => ', paths);
 
         transpileAll(paths, cb);
 

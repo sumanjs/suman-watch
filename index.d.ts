@@ -17,4 +17,9 @@ export interface ISumanTransformResult {
     code: number;
     path: string;
 }
+export interface ISumanTranspileData {
+    cwd: string;
+    basePath: string;
+    bashFilePath: string;
+}
 export declare const startWatching: (watchOpts: ISumanWatchOptions, cb: Function) => void;

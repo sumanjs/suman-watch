@@ -1,3 +1,5 @@
+async lib types => https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/async/index.d.ts#L112
+
 suman --watch x --watch y
 
 should not cause problems

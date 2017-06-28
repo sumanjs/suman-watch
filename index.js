@@ -29,19 +29,38 @@ exports.startWatching = function (watchOpts, cb) {
                 logging_1.logInfo('watch process will not get all transform paths, because we are not transpiling.');
                 return process.nextTick(cb);
             }
-            suman_utils_1.default.findSumanMarkers(['@run.sh', '@transform.sh'], testSrcDir, [], cb);
+            suman_utils_1.default.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testSrcDir, [], cb);
         },
         transpileAll: function (getTransformPaths, cb) {
             if (watchOpts.noTranspile) {
                 logging_1.logInfo('watch process will not run transpile-all routine, because we are not transpiling.');
                 return process.nextTick(cb);
             }
-            var paths = Object.keys(getTransformPaths).filter(function (key) {
-                return getTransformPaths[key]['@transform.sh'];
+            var paths = Object.keys(getTransformPaths).map(function (key) {
+                if (getTransformPaths[key]['@transform.sh']) {
+                    return {
+                        cwd: getTransformPaths[key],
+                        basePath: path.resolve(key + '/@transform.sh'),
+                        bashFilePath: path.resolve(key + '/@transform.sh')
+                    };
+                }
+                if (getTransformPaths[key]['@config.json']) {
+                    try {
+                        var config = require(path.resolve(key + '/@config.json'));
+                        var plugin = config['@transform']['plugin']['value'];
+                        return {
+                            cwd: getTransformPaths[key],
+                            basePath: path.resolve(key + '/@config.json'),
+                            bashFilePath: require(plugin).getTransformPath()
+                        };
+                    }
+                    catch (err) {
+                        console.error(err.stack || err);
+                    }
+                }
             })
-                .map(function (k) {
-                return path.resolve(k + '/@transform.sh');
-            });
+                .filter(function (i) { return i; });
+            console.log('going to transform against these paths => ', paths);
             transpileAll(paths, cb);
         }
     }, function (err, results) {
