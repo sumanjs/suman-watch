@@ -1,3 +1,7 @@
+create babel run and babel transform
+
+create pool of bash workers beforehand? => can't set env and cwd after the fact?
+
 async lib types => https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/async/index.d.ts#L112
 
 suman --watch x --watch y

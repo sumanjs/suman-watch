@@ -1,0 +1,14 @@
+{
+  "@run": {
+    "plugin": {
+      "location": "npm",
+      "value": "suman-run-plugins/plugins/babel-std"
+    }
+  },
+  "@transform": {
+    "plugin": {
+      "location": "npm",
+      "value": "suman-transform-plugins/plugins/babel-std"
+    }
+  }
+}

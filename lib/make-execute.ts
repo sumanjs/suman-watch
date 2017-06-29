@@ -1,5 +1,10 @@
 import {ISumanWatchOptions} from "../index";
 
+
+//polyfills
+const process = require('suman-browser-polyfills/modules/process');
+const global = require('suman-browser-polyfills/modules/global');
+
 //core
 import * as util from 'util';
 import * as assert from 'assert';
@@ -13,6 +18,7 @@ import su, {INearestRunAndTransformRet} from 'suman-utils';
 //project
 import {workerPool} from './worker-pool';
 import {logInfo, logError, logWarning, logVeryGood, logGood} from './logging';
+const bashPool = [];
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -59,7 +65,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
 
         k = cp.spawn('bash', [], {
           cwd: projectRoot,
-          stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+          stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
           env: Object.assign({}, process.env, {
             SUMAN_TEST_PATHS: JSON.stringify([f]),
             SUMAN_ALWAYS_INHERIT_STDIO: 'yes'
@@ -105,7 +111,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
           code,
           stdout: String(stdout).trim(),
           stderr: String(stderr).trim()
-        })
+        });
 
       });
 

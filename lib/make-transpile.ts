@@ -32,17 +32,21 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
     //   return process.nextTick(cb);
     // }
 
+    console.log('transformData => ',util.inspect(transformData));
+
     let transformPath: string;
 
     // we do a lazy check to see if the @config file is closer to the source file, by simply comparing
     // filepath length
     const transformLength = transformData.transform ? transformData.transform.length : 0;
-    if (transformData.config && transformData.config.length > transformLength) {
+    if (transformData.config && transformData.config.length >= transformLength) {
       try {
         const config = require(transformData.config);
+        console.log('config => ', config);
         const plugin = config['@transform']['plugin']['value'];
+        console.log(' plugin => ', plugin);
         if (plugin) {
-          transformPath = require(plugin).getRunPath();
+          transformPath = require(plugin).getTransformPath();
         }
       }
       catch (err) {
@@ -67,12 +71,14 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
 
       const k = cp.spawn('bash', [], {
         cwd: projectRoot,
-        stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+        stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
         env: Object.assign({}, process.env, {
           SUMAN_TEST_PATHS: JSON.stringify([f]),
           SUMAN_TRANSFORM_ALL_SOURCES: 'no'
         })
       });
+
+      console.log('transform path => ', transformPath);
 
       fs.createReadStream(transformPath).pipe(k.stdin);
 

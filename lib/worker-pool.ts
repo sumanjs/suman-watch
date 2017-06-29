@@ -1,6 +1,11 @@
 import {Pool} from "poolio";
 import * as path from 'path';
 
+
+//polyfills
+const process = require('suman-browser-polyfills/modules/process');
+const global = require('suman-browser-polyfills/modules/global');
+
 /////////////////////////////////////////////////
 
 const pool = new Pool({

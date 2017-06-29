@@ -8,6 +8,7 @@ var logging_1 = require("./lib/logging");
 var async = require("async");
 var suman_utils_1 = require("suman-utils");
 var chokidar = require("chokidar");
+var chalk = require("chalk");
 var make_transpile_1 = require("./lib/make-transpile");
 var make_execute_1 = require("./lib/make-execute");
 var make_transpile_all_1 = require("./lib/make-transpile-all");
@@ -73,14 +74,25 @@ exports.startWatching = function (watchOpts, cb) {
                 logging_1.logError('transform result error => ', util.inspect(t));
             }
             else {
-                logging_1.logGood("transform result for => " + t.path.basePath);
-                String(t.stdout).split('\n').filter(function (i) { return i; }).forEach(function (l) {
-                    logging_1.logGood('stdout:', l);
-                });
-                String(t.stderr).split('\n').filter(function (i) { return i; }).forEach(function (l) {
-                    logging_1.logWarning('stderr:', l);
-                });
-                console.log('\n');
+                logging_1.logGood("transform result for => " + chalk.magenta(t.path.basePath));
+                var stdout = String(t.stdout).split('\n').filter(function (i) { return i; });
+                if (stdout.length > 0) {
+                    console.log('\n');
+                    console.log('stdout:\n');
+                    stdout.forEach(function (l) {
+                        logging_1.logGood('stdout:', l);
+                        console.log('\n');
+                    });
+                }
+                var stderr = String(t.stderr).split('\n').filter(function (i) { return i; });
+                if (stderr.length > 0) {
+                    console.log('\n');
+                    console.error('stderr:\n');
+                    stderr.forEach(function (l) {
+                        logging_1.logWarning('stderr:', l);
+                    });
+                    console.log('\n');
+                }
             }
         });
         var watcher = chokidar.watch(testSrcDir, {
@@ -121,15 +133,17 @@ exports.startWatching = function (watchOpts, cb) {
                             return;
                         }
                         var stdout = result.stdout, stderr = result.stderr, code = result.code;
-                        logging_1.logInfo("you corresponding test process for path " + f + ", exited with code " + code);
+                        logging_1.logInfo("your corresponding test process for path " + f + ", exited with code " + code);
                         if (code > 0) {
                             logging_1.logError("there was an error executing your test with path " + f + ", because the exit code was greater than 0.");
                         }
                         if (stderr) {
-                            logging_1.logWarning("the stderr for path " + f + ", is as follows =>\n" + stderr + ".");
+                            logging_1.logWarning("the stderr for path " + f + ", is as follows =>\n" + chalk.yellow(stderr) + ".");
+                            console.error('\n');
                         }
                         if (stdout) {
-                            logging_1.logInfo("the stderr for path " + f + ", is as follows =>\n" + stdout + ".");
+                            logging_1.logInfo("the stdout for path " + f + ", is as follows =>\n" + stdout + ".");
+                            console.log('\n');
                         }
                     });
                 });

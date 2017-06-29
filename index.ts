@@ -20,6 +20,7 @@ import {logInfo, logError, logWarning, logVeryGood, logGood} from './lib/logging
 import * as async from 'async';
 import su from 'suman-utils';
 import * as chokidar from 'chokidar';
+import * as chalk from 'chalk';
 import {Pool} from 'poolio';
 
 //project
@@ -139,14 +140,32 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
           logError('transform result error => ', util.inspect(t));
         }
         else {
-          logGood(`transform result for => ${t.path.basePath}`);
-          String(t.stdout).split('\n').filter(i => i).forEach(function (l) {
-            logGood('stdout:', l);
-          });
-          String(t.stderr).split('\n').filter(i => i).forEach(function (l) {
-            logWarning('stderr:', l);
-          });
-          console.log('\n');
+          logGood(`transform result for => ${chalk.magenta(t.path.basePath)}`);
+
+          const stdout = String(t.stdout).split('\n').filter(i => i);
+
+          if (stdout.length > 0) {
+            console.log('\n');
+            console.log('stdout:\n');
+            stdout.forEach(function (l) {
+              logGood('stdout:', l);
+              console.log('\n');
+            });
+          }
+
+          const stderr = String(t.stderr).split('\n').filter(i => i);
+
+          if (stderr.length > 0) {
+            console.log('\n');
+
+            console.error('stderr:\n');
+
+            stderr.forEach(function (l) {
+              logWarning('stderr:', l);
+            });
+            console.log('\n');
+          }
+
         }
       });
 
@@ -203,18 +222,20 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
 
               const {stdout, stderr, code} = result;
 
-              logInfo(`you corresponding test process for path ${f}, exited with code ${code}`);
+              logInfo(`your corresponding test process for path ${f}, exited with code ${code}`);
 
               if (code > 0) {
                 logError(`there was an error executing your test with path ${f}, because the exit code was greater than 0.`);
               }
 
               if (stderr) {
-                logWarning(`the stderr for path ${f}, is as follows =>\n${stderr}.`);
+                logWarning(`the stderr for path ${f}, is as follows =>\n${chalk.yellow(stderr)}.`);
+                console.error('\n');
               }
 
               if (stdout) {
-                logInfo(`the stderr for path ${f}, is as follows =>\n${stdout}.`);
+                logInfo(`the stdout for path ${f}, is as follows =>\n${stdout}.`);
+                console.log('\n');
               }
 
             });
