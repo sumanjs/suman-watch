@@ -64,6 +64,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
         console.log('runPath => ', runPath);
 
         k = cp.spawn('bash', [], {
+          detached: false,
           cwd: projectRoot,
           stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
           env: Object.assign({}, process.env, {
@@ -82,6 +83,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
         console.log('file path  => ', f);
 
         k = cp.spawn(f, [], {
+          detached: false,
           cwd: projectRoot,
           stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
           env: Object.assign({}, process.env, {

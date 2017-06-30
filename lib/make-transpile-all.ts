@@ -32,7 +32,7 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
 
     const sumanConfig = require(path.resolve(projectRoot + '/suman.conf.js'));
 
-    async.mapLimit(transformPaths, 5, function (t: ISumanTranspileData, $cb: Function) {
+    async.mapLimit(transformPaths, 4, function (t: ISumanTranspileData, $cb: Function) {
 
       const cb = su.once(this, $cb);
 
@@ -57,6 +57,7 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
           // console.log('uniqueResults => ', uniqueResults);
 
           const k = cp.spawn('bash', [], {
+            detached: false,
             cwd: t.cwd,
             env: Object.assign({}, process.env, {
               SUMAN_TEST_PATHS: JSON.stringify(uniqueResults),

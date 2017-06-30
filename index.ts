@@ -104,6 +104,9 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb?: Funct
   const testSrcDir = process.env['TEST_SRC_DIR'];
   const transpileAll = makeTranspileAll(watchOpts, projectRoot);
 
+  // we should re-load suman config, in case it has changed, etc.
+  const sumanConfig = require(path.resolve(projectRoot + '/suman.conf.js'));
+
   async.autoInject({
 
       getTransformPaths: function (cb: AsyncResultArrayCallback<Error, Iterable<any>>) {
@@ -209,6 +212,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb?: Funct
       const startScript = path.resolve(__dirname + '/start.js');
 
       const k = cp.spawn(startScript, [], {
+        detached: false,
         cwd: projectRoot,
         env: Object.assign({}, process.env, {
           SUMAN_TOTAL_IGNORED: JSON.stringify(moreIgnored),

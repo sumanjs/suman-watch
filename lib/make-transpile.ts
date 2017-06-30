@@ -66,6 +66,7 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
       console.log('test path in transform => ', f);
 
       const k = cp.spawn('bash', [], {
+        detached: false,
         cwd: projectRoot,
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
         env: Object.assign({}, process.env, {
