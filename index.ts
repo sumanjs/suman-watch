@@ -62,11 +62,9 @@ export interface ISumanTranspileData {
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-
 //   /___jb_old___/,
 //   /___jb_tmp___/,
 //   /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/
-
 
 const alwaysIgnore = [
   '___jb_old___',
@@ -77,7 +75,6 @@ const alwaysIgnore = [
   '.*\.json$',
   '/logs/'
 ];
-
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -108,7 +105,41 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
         su.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testDir, [], cb);
       },
 
+      getIgnorePathsFromConfigs: function (getTransformPaths: IMap, cb: AsyncResultArrayCallback<Error, Iterable<any>>) {
+
+        async.map(Object.keys(getTransformPaths), function (key, cb: Function) {
+
+          if (!getTransformPaths[key]['@config.json']) {
+            return process.nextTick(cb);
+          }
+
+          const p = path.resolve(getTransformPaths[key] + '/@config.json');
+
+          fs.readFile(p, 'utf8', function (err: Error, data: string) {
+
+            if (err) {
+              return cb(err);
+            }
+
+            try {
+              cb(null, {
+                path: p,
+                data: JSON.parse(data)
+              });
+            }
+            catch (err) {
+              cb(err);
+            }
+
+          });
+
+        }, cb)
+
+      },
+
       transpileAll: function (getTransformPaths: IMap, cb: AsyncResultArrayCallback<Error, Iterable<any>>) {
+
+        console.log(util.inspect(getTransformPaths));
 
         if (watchOpts.noTranspile) {
           logInfo('watch process will not run transpile-all routine, because we are not transpiling.');

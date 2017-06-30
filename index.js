@@ -4,6 +4,7 @@ var process = require('suman-browser-polyfills/modules/process');
 var global = require('suman-browser-polyfills/modules/global');
 var util = require("util");
 var path = require("path");
+var fs = require("fs");
 var logging_1 = require("./lib/logging");
 var async = require("async");
 var suman_utils_1 = require("suman-utils");
@@ -42,7 +43,30 @@ exports.startWatching = function (watchOpts, cb) {
             }
             suman_utils_1.default.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testDir, [], cb);
         },
+        getIgnorePathsFromConfigs: function (getTransformPaths, cb) {
+            async.map(Object.keys(getTransformPaths), function (key, cb) {
+                if (!getTransformPaths[key]['@config.json']) {
+                    return process.nextTick(cb);
+                }
+                var p = path.resolve(getTransformPaths[key] + '/@config.json');
+                fs.readFile(p, 'utf8', function (err, data) {
+                    if (err) {
+                        return cb(err);
+                    }
+                    try {
+                        cb(null, {
+                            path: p,
+                            data: JSON.parse(data)
+                        });
+                    }
+                    catch (err) {
+                        cb(err);
+                    }
+                });
+            }, cb);
+        },
         transpileAll: function (getTransformPaths, cb) {
+            console.log(util.inspect(getTransformPaths));
             if (watchOpts.noTranspile) {
                 logging_1.logInfo('watch process will not run transpile-all routine, because we are not transpiling.');
                 return process.nextTick(cb);
