@@ -28,4 +28,6 @@ ___jb_tmp___, etc.
 
 
 when a file is added, re-run/re-start everything - so that the file - watcher thing is in a child-process
-beautiful!
+beautiful! the reason to do this - is if the user changes a config.json file or @transform.sh file,
+or adds the file, then we need to start over. We should debounce it to 3 or 4 seconds.
+
