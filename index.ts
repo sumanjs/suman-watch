@@ -85,20 +85,7 @@ interface IConfigItem {
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-//   /___jb_old___/,
-//   /___jb_tmp___/,
-//   /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/
-
-const alwaysIgnore = [
-  '___jb_old___',
-  '___jb_tmp___',
-  '/node_modules/',
-  '/.git/',
-  '\\.log$',
-  '\\.json$',
-  '/logs/',
-  '/@target/'
-];
+const alwaysIgnore = getAlwaysIgnore();
 
 const onSIG = function () {
   logInfo('suman watch is exiting.');
@@ -202,10 +189,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb?: Funct
           const stderr = String(t.stderr).split('\n').filter(i => i);
 
           if (stderr.length > 0) {
-            console.log('\n');
-
-            console.error('stderr:\n');
-
+            console.error('\nstderr:\n');
             stderr.forEach(function (l) {
               logWarning('stderr:', l);
             });
@@ -222,18 +206,20 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb?: Funct
           return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/, ''));
         });
 
-
       const startScript = path.resolve(__dirname + '/start.js');
 
       const k = cp.spawn(startScript, [], {
-          cwd: projectRoot,
-          env: Object.assign({}, process.env, {
-            SUMAN_TOTAL_IGNORED: JSON.stringify(moreIgnored),
-            SUMAN_PROJECT_ROOT: projectRoot,
-            SUMAN_WATCH_OPTS: JSON.stringify(watchOpts)
-          })
+        cwd: projectRoot,
+        env: Object.assign({}, process.env, {
+          SUMAN_TOTAL_IGNORED: JSON.stringify(moreIgnored),
+          SUMAN_PROJECT_ROOT: projectRoot,
+          SUMAN_WATCH_OPTS: JSON.stringify(watchOpts)
+        }),
+        stdio: ['pipe','pipe','pipe','ipc']
       });
 
+      k.stdout.pipe(process.stdout);
+      k.stderr.pipe(process.stderr);
 
       let watcher = chokidar.watch(testDir, {
         // cwd: projectRoot,
@@ -265,33 +251,28 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb?: Funct
       let killAndRestart = function () {
         watcher.close();
         k.kill('SIGINT');
-        setImmediate(function(){
+        setImmediate(function () {
           startWatching(watchOpts);
         });
       };
 
       let to: NodeJS.Timer;
 
-      watcher.on('change', function (p) {
-        if (isPathMatchesSig(path.basename(p))) {
-          clearTimeout(to);
-          to = setTimeout(killAndRestart, 5000);
-        }
-      });
+      let onEvent = function (eventName: string) {
+        return function (p: string) {
+          logInfo(eventName, 'event :', p);
+          if (isPathMatchesSig(path.basename(p))) {
+            logWarning('we will refresh the watch processed based on this event, in 5 seconds, ' +
+              'if no other changes occur in the meantime.');
+            clearTimeout(to);
+            to = setTimeout(killAndRestart, 8000);
+          }
+        };
+      };
 
-      watcher.on('add', function (p) {
-        if (isPathMatchesSig(path.basename(p))) {
-          clearTimeout(to);
-          to = setTimeout(killAndRestart, 5000);
-        }
-      });
-
-      watcher.on('unlink', function (p) {
-        if (isPathMatchesSig(path.basename(p))) {
-          clearTimeout(to);
-          to = setTimeout(killAndRestart, 5000);
-        }
-      });
+      watcher.on('change', onEvent('change'));
+      watcher.on('add', onEvent('add'));
+      watcher.on('unlink', onEvent('unlink'));
 
     });
 

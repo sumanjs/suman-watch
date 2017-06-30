@@ -27,7 +27,6 @@ export const getAlwaysIgnore = function () {
     '/node_modules/',
     '/.git/',
     '\\.log$',
-    '\\.json$',
     '/logs/',
     '/@target/'
   ];

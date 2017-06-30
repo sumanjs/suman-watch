@@ -20,6 +20,15 @@ var watcher = chokidar.watch(testDir, {
     ignoreInitial: true,
     ignored: utils_1.getAlwaysIgnore().concat(ignored).map(function (v) { return new RegExp(v); })
 });
+process.once('exit', function () {
+    watcher.close();
+});
+process.on('SIGINT', function () {
+    watcher.on('close', function () {
+        process.exit(0);
+    });
+    watcher.close();
+});
 watcher.on('error', function (e) {
     logging_1.logError('watcher experienced an error', e.stack || e);
 });

@@ -44,6 +44,17 @@ let watcher = chokidar.watch(testDir, {
   ignored: getAlwaysIgnore().concat(ignored).map((v: string) => new RegExp(v))
 });
 
+process.once('exit', function(){
+  watcher.close();
+});
+
+process.on('SIGINT', function(){
+  watcher.on('close', function(){
+     process.exit(0);
+  });
+  watcher.close();
+});
+
 watcher.on('error', function (e: Error) {
   logError('watcher experienced an error', e.stack || e);
 });

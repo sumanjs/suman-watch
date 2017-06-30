@@ -13,16 +13,7 @@ var chokidar = require("chokidar");
 var chalk = require("chalk");
 var utils_1 = require("./lib/utils");
 var make_transpile_all_1 = require("./lib/make-transpile-all");
-var alwaysIgnore = [
-    '___jb_old___',
-    '___jb_tmp___',
-    '/node_modules/',
-    '/.git/',
-    '\\.log$',
-    '\\.json$',
-    '/logs/',
-    '/@target/'
-];
+var alwaysIgnore = utils_1.getAlwaysIgnore();
 var onSIG = function () {
     logging_1.logInfo('suman watch is exiting.');
     process.exit(139);
@@ -99,8 +90,7 @@ exports.startWatching = function (watchOpts, cb) {
                 }
                 var stderr = String(t.stderr).split('\n').filter(function (i) { return i; });
                 if (stderr.length > 0) {
-                    console.log('\n');
-                    console.error('stderr:\n');
+                    console.error('\nstderr:\n');
                     stderr.forEach(function (l) {
                         logging_1.logWarning('stderr:', l);
                     });
@@ -121,8 +111,11 @@ exports.startWatching = function (watchOpts, cb) {
                 SUMAN_TOTAL_IGNORED: JSON.stringify(moreIgnored),
                 SUMAN_PROJECT_ROOT: projectRoot,
                 SUMAN_WATCH_OPTS: JSON.stringify(watchOpts)
-            })
+            }),
+            stdio: ['pipe', 'pipe', 'pipe', 'ipc']
         });
+        k.stdout.pipe(process.stdout);
+        k.stderr.pipe(process.stderr);
         var watcher = chokidar.watch(testDir, {
             persistent: true,
             ignoreInitial: true,
@@ -151,23 +144,19 @@ exports.startWatching = function (watchOpts, cb) {
             });
         };
         var to;
-        watcher.on('change', function (p) {
-            if (utils_1.isPathMatchesSig(path.basename(p))) {
-                clearTimeout(to);
-                to = setTimeout(killAndRestart, 5000);
-            }
-        });
-        watcher.on('add', function (p) {
-            if (utils_1.isPathMatchesSig(path.basename(p))) {
-                clearTimeout(to);
-                to = setTimeout(killAndRestart, 5000);
-            }
-        });
-        watcher.on('unlink', function (p) {
-            if (utils_1.isPathMatchesSig(path.basename(p))) {
-                clearTimeout(to);
-                to = setTimeout(killAndRestart, 5000);
-            }
-        });
+        var onEvent = function (eventName) {
+            return function (p) {
+                logging_1.logInfo(eventName, 'event :', p);
+                if (utils_1.isPathMatchesSig(path.basename(p))) {
+                    logging_1.logWarning('we will refresh the watch processed based on this event, in 5 seconds, ' +
+                        'if no other changes occur in the meantime.');
+                    clearTimeout(to);
+                    to = setTimeout(killAndRestart, 8000);
+                }
+            };
+        };
+        watcher.on('change', onEvent('change'));
+        watcher.on('add', onEvent('add'));
+        watcher.on('unlink', onEvent('unlink'));
     });
 };

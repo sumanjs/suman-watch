@@ -13,4 +13,4 @@ Test.create('first', function (it) {
   it('is passing', _suman2.default.autoPass);
 });
 
-/// zoom //
+/// zoom ////////
