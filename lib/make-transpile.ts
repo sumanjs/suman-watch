@@ -8,17 +8,17 @@ const process = require('suman-browser-polyfills/modules/process');
 const global = require('suman-browser-polyfills/modules/global');
 
 //core
-import * as fs from 'fs';
-import * as util from 'util';
-import * as assert from 'assert';
-import * as path from 'path';
-import * as cp from 'child_process';
+import * as fs from 'fs'
+import * as util from 'util'
+import * as assert from 'assert'
+import * as path from 'path'
+import * as cp from 'child_process'
 
 //npm
 import su, {INearestRunAndTransformRet} from 'suman-utils';
 
 //project
-import {logInfo, logError, logWarning, logVeryGood, logGood} from './logging';
+import log from './logging';
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -28,7 +28,7 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
 
     const cb = su.once(this, $cb);
 
-    console.log('transformData => ',util.inspect(transformData));
+    console.log('transformData => ', util.inspect(transformData));
 
     let transformPath: string;
 
@@ -38,13 +38,23 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
     if (transformData.config && transformData.config.length >= transformLength) {
       try {
         const config = require(transformData.config);
+        try{
+          const prevent = config['@transform']['prevent'];
+          if(prevent === true){
+            return process.nextTick(cb);
+          }
+        }
+        catch(err){
+          /* noop */
+        }
+
         const plugin = config['@transform']['plugin']['value'];
         if (plugin) {
           transformPath = require(plugin).getTransformPath();
         }
       }
       catch (err) {
-        logError(err.stack || err);
+        log.error(err.message || err);
       }
     }
 
@@ -63,8 +73,6 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
         return cb(err);
       }
 
-      console.log('test path in transform => ', f);
-
       const k = cp.spawn('bash', [], {
         detached: false,
         cwd: projectRoot,
@@ -77,12 +85,10 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
         })
       });
 
-      console.log('XXX transform path => ', transformPath);
-
       fs.createReadStream(transformPath).pipe(k.stdin);
 
       k.once('error', function (e: Error) {
-        logError(`transform process experienced spawn error for path "${f}" =>\n${e.stack || e}.`)
+        log.error(`transform process experienced spawn error for path "${f}" =>\n${e.stack || e}.`)
       });
 
       let stdout = '';
@@ -103,7 +109,7 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
         cb(new Error(`transform process timed out for path "${f}".`), {
           stdout: String(stdout).trim(),
           stderr: String(stderr).trim()
-        })
+        });
       }, 1000000);
 
       k.once('exit', function (code: number) {

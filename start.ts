@@ -25,7 +25,7 @@ import {makeTranspileAll} from './lib/make-transpile-all';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './lib/utils';
 
 //project
-import {logInfo, logError, logWarning, logVeryGood, logGood} from './lib/logging';
+import log from './lib/logging';
 import {ISumanWatchResult} from "./index";
 
 /////////////////////////////////////////////////////////////////////
@@ -56,11 +56,11 @@ process.on('SIGINT', function(){
 });
 
 watcher.on('error', function (e: Error) {
-  logError('watcher experienced an error', e.stack || e);
+  log.error('watcher experienced an error', e.stack || e);
 });
 
 watcher.once('ready', function () {
-  logVeryGood('watcher is ready.');
+  log.veryGood('watcher is ready.');
 
   let watchCount = 0;
   let watched = watcher.getWatched();
@@ -69,7 +69,7 @@ watcher.once('ready', function () {
     watchCount += watched[k].length;
   });
 
-  logVeryGood('number of files being watched by suman-watch => ', watchCount);
+  log.veryGood('number of files being watched by suman-watch => ', watchCount);
 });
 
 
@@ -79,26 +79,26 @@ watcher.on('change', function (f: string) {
     f = path.resolve(projectRoot + '/' + f);
   }
 
-  logInfo('file change event for path => ', f);
+  log.info('file change event for path => ', f);
 
   su.findNearestRunAndTransform(projectRoot, f, function (err: Error, ret: INearestRunAndTransformRet) {
 
     if (err) {
-      logError(`error locating @run.sh / @transform.sh for file ${f}.\n${err}`);
+      log.error(`error locating @run.sh / @transform.sh for file ${f}.\n${err}`);
       return;
     }
 
     transpile(f, ret, function (err: Error) {
 
       if (err) {
-        logError(`error running transpile process for file ${f}.\n${err}`);
+        log.error(`error running transpile process for file ${f}.\n${err}`);
         return;
       }
 
       execute(f, ret, function (err: Error, result: ISumanWatchResult) {
 
         if (err) {
-          logError(`error executing corresponding test process for source file ${f}.\n${err.stack || err}`);
+          log.error(`error executing corresponding test process for source file ${f}.\n${err.stack || err}`);
           return;
         }
 
@@ -107,21 +107,21 @@ watcher.on('change', function (f: string) {
         console.log('\n');
         console.error('\n');
 
-        logInfo(`your corresponding test process for path ${f}, exited with code ${code}`);
+        log.info(`your corresponding test process for path ${f}, exited with code ${code}`);
 
         if (code > 0) {
-          logError(`there was an error executing your test with path ${f}, because the exit code was greater than 0.`);
+          log.error(`there was an error executing your test with path ${f}, because the exit code was greater than 0.`);
         }
 
         if (stderr) {
-          logWarning(`the stderr for path ${f}, is as follows =>\n${chalk.yellow(stderr)}.`);
+          log.warning(`the stderr for path ${f}, is as follows =>\n${chalk.yellow(stderr)}.`);
           console.error('\n');
         }
 
-        if (stdout) {
-          logInfo(`the stdout for path ${f}, is as follows =>\n${stdout}.`);
-          console.log('\n');
-        }
+        // if (stdout) {
+        //   log.info(`the stdout for path ${f}, is as follows =>\n${stdout}.`);
+        //   console.log('\n');
+        // }
 
       });
     });

@@ -33,6 +33,7 @@
     "chalk": "^1.1.3",
     "chokidar": "^1.6.1",
     "poolio": "latest",
+    "prepend-transform": "0.0.1001",
     "suman-browser-polyfills": "latest",
     "suman-utils": "latest"
   },

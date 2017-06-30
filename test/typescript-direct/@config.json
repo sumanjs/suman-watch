@@ -1,0 +1,17 @@
+{
+  "@src": {
+    "marker": "/@src/"
+  },
+  "@target": {
+    "marker": "/sam/"
+  },
+  "@run": {
+    "plugin": {
+      "location": "npm",
+      "value": "suman-run-plugins/plugins/ts-node"
+    }
+  },
+  "@transform": {
+    "prevent": true
+  }
+}

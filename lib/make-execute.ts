@@ -17,7 +17,7 @@ import su, {INearestRunAndTransformRet} from 'suman-utils';
 
 //project
 import {workerPool} from './worker-pool';
-import {logInfo, logError, logWarning, logVeryGood, logGood} from './logging';
+import log from './logging';
 const bashPool = [];
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -41,7 +41,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
         }
       }
       catch (err) {
-        logError(err.stack || err);
+        log.error(err.stack || err);
       }
     }
 

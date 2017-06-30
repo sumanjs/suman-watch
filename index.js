@@ -11,11 +11,12 @@ var async = require("async");
 var suman_utils_1 = require("suman-utils");
 var chokidar = require("chokidar");
 var chalk = require("chalk");
+var prepend_transform_1 = require("prepend-transform");
 var utils_1 = require("./lib/utils");
 var make_transpile_all_1 = require("./lib/make-transpile-all");
 var alwaysIgnore = utils_1.getAlwaysIgnore();
 var onSIG = function () {
-    logging_1.logInfo('suman watch is exiting.');
+    logging_1.default.info('suman watch is exiting.');
     process.exit(139);
 };
 process.on('SIGINT', onSIG);
@@ -25,10 +26,11 @@ exports.startWatching = function (watchOpts, cb) {
     var testDir = process.env['TEST_DIR'];
     var testSrcDir = process.env['TEST_SRC_DIR'];
     var transpileAll = make_transpile_all_1.makeTranspileAll(watchOpts, projectRoot);
+    var sumanConfig = require(path.resolve(projectRoot + '/suman.conf.js'));
     async.autoInject({
         getTransformPaths: function (cb) {
             if (watchOpts.noTranspile) {
-                logging_1.logInfo('watch process will not get all transform paths, because we are not transpiling.');
+                logging_1.default.info('watch process will not get all transform paths, because we are not transpiling.');
                 return process.nextTick(cb);
             }
             suman_utils_1.default.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testDir, [], cb);
@@ -37,9 +39,8 @@ exports.startWatching = function (watchOpts, cb) {
             utils_1.find(getTransformPaths, cb);
         },
         transpileAll: function (getTransformPaths, cb) {
-            console.log(util.inspect(getTransformPaths));
             if (watchOpts.noTranspile) {
-                logging_1.logInfo('watch process will not run transpile-all routine, because we are not transpiling.');
+                logging_1.default.info('watch process will not run transpile-all routine, because we are not transpiling.');
                 return process.nextTick(cb);
             }
             var paths = Object.keys(getTransformPaths).map(function (key) {
@@ -61,7 +62,12 @@ exports.startWatching = function (watchOpts, cb) {
                         };
                     }
                     catch (err) {
-                        logging_1.logError(err.stack || err);
+                        logging_1.default.warning(err.message || err);
+                        return {
+                            cwd: getTransformPaths[key],
+                            basePath: path.resolve(key + '/@config.json'),
+                            bashFilePath: null
+                        };
                     }
                 }
             })
@@ -72,30 +78,31 @@ exports.startWatching = function (watchOpts, cb) {
         if (err) {
             throw err;
         }
-        logging_1.logGood('\nTranspilation results:\n');
+        console.log('\n');
+        logging_1.default.good('Transpilation results:\n');
         results.transpileAll.forEach(function (t) {
             if (t.code > 0) {
-                logging_1.logError('transform result error => ', util.inspect(t));
+                logging_1.default.error('transform result error => ', util.inspect(t));
             }
             else {
-                logging_1.logGood("transform result for => " + chalk.magenta(t.path.basePath));
+                logging_1.default.good("transform result for => " + chalk.magenta(t.path.basePath));
                 var stdout = String(t.stdout).split('\n').filter(function (i) { return i; });
                 if (stdout.length > 0) {
                     console.log('\n');
                     console.log('stdout:\n');
                     stdout.forEach(function (l) {
-                        logging_1.logGood('stdout:', l);
-                        console.log('\n');
+                        logging_1.default.good('stdout:', l);
                     });
                 }
                 var stderr = String(t.stderr).split('\n').filter(function (i) { return i; });
                 if (stderr.length > 0) {
                     console.error('\nstderr:\n');
                     stderr.forEach(function (l) {
-                        logging_1.logWarning('stderr:', l);
+                        logging_1.default.warning('stderr:', l);
                     });
-                    console.log('\n');
                 }
+                console.log('\n');
+                console.error('\n');
             }
         });
         var moreIgnored = results.getIgnorePathsFromConfigs.filter(function (item) {
@@ -106,6 +113,7 @@ exports.startWatching = function (watchOpts, cb) {
         });
         var startScript = path.resolve(__dirname + '/start.js');
         var k = cp.spawn(startScript, [], {
+            detached: false,
             cwd: projectRoot,
             env: Object.assign({}, process.env, {
                 SUMAN_TOTAL_IGNORED: JSON.stringify(moreIgnored),
@@ -114,24 +122,24 @@ exports.startWatching = function (watchOpts, cb) {
             }),
             stdio: ['pipe', 'pipe', 'pipe', 'ipc']
         });
-        k.stdout.pipe(process.stdout);
-        k.stderr.pipe(process.stderr);
+        k.stdout.pipe(prepend_transform_1.default(chalk.black.bold(' [watch-worker] '))).pipe(process.stdout);
+        k.stderr.pipe(prepend_transform_1.default(chalk.yellow(' [watch-worker] '))).pipe(process.stderr);
         var watcher = chokidar.watch(testDir, {
             persistent: true,
             ignoreInitial: true,
             ignored: alwaysIgnore.concat(moreIgnored).map(function (v) { return new RegExp(v); })
         });
         watcher.on('error', function (e) {
-            logging_1.logError('watcher experienced an error', e.stack || e);
+            logging_1.default.error('watcher experienced an error', e.stack || e);
         });
         watcher.once('ready', function () {
-            logging_1.logVeryGood('watcher is ready.');
+            logging_1.default.veryGood('watcher is ready.');
             var watchCount = 0;
             var watched = watcher.getWatched();
             Object.keys(watched).forEach(function (k) {
                 watchCount += watched[k].length;
             });
-            logging_1.logVeryGood('number of files being watched by suman-watch => ', watchCount);
+            logging_1.default.veryGood('number of files being watched by suman-watch => ', watchCount);
             cb && cb(null, {
                 watched: watched
             });
@@ -146,9 +154,9 @@ exports.startWatching = function (watchOpts, cb) {
         var to;
         var onEvent = function (eventName) {
             return function (p) {
-                logging_1.logInfo(eventName, 'event :', p);
+                logging_1.default.info(eventName, 'event :', p);
                 if (utils_1.isPathMatchesSig(path.basename(p))) {
-                    logging_1.logWarning('we will refresh the watch processed based on this event, in 5 seconds, ' +
+                    logging_1.default.warning('we will refresh the watch processed based on this event, in 5 seconds, ' +
                         'if no other changes occur in the meantime.');
                     clearTimeout(to);
                     to = setTimeout(killAndRestart, 8000);

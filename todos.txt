@@ -8,6 +8,8 @@ suman --watch x --watch y
 
 should not cause problems
 
+only if the expected number of watched files in the worker does not match, should
+we throw an error.
 
 suman --watch x --exec=""
 suman --watch . --exclude="" --include="" --exec=""
@@ -31,3 +33,4 @@ when a file is added, re-run/re-start everything - so that the file - watcher th
 beautiful! the reason to do this - is if the user changes a config.json file or @transform.sh file,
 or adds the file, then we need to start over. We should debounce it to 3 or 4 seconds.
 
+support hooking into transpilation "hot"/live watch processes, so we don't have to transpile from scratch
