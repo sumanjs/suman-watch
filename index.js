@@ -18,9 +18,10 @@ var alwaysIgnore = [
     '___jb_tmp___',
     '/node_modules/',
     '/.git/',
-    '.*\.log$',
-    '.*\.json$',
-    '/logs/'
+    '\\.log$',
+    '\\.json$',
+    '/logs/',
+    '/@target/'
 ];
 exports.startWatching = function (watchOpts, cb) {
     var onSIG = function () {
@@ -48,7 +49,7 @@ exports.startWatching = function (watchOpts, cb) {
                 if (!getTransformPaths[key]['@config.json']) {
                     return process.nextTick(cb);
                 }
-                var p = path.resolve(getTransformPaths[key] + '/@config.json');
+                var p = path.resolve(key + '/@config.json');
                 fs.readFile(p, 'utf8', function (err, data) {
                     if (err) {
                         return cb(err);
@@ -128,15 +129,17 @@ exports.startWatching = function (watchOpts, cb) {
                 }
             }
         });
-        var watcher = chokidar.watch(testSrcDir, {
-            cwd: projectRoot,
+        var moreIgnored = results.getIgnorePathsFromConfigs.filter(function (item) {
+            return item.data && item.data['@target'] && item.data['@target']['marker'];
+        })
+            .map(function (item) {
+            return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/, ''));
+        });
+        console.log('more ignored => ', moreIgnored);
+        var watcher = chokidar.watch(testDir, {
             persistent: true,
             ignoreInitial: true,
-            ignored: [
-                /___jb_old___/,
-                /___jb_tmp___/,
-                /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/
-            ]
+            ignored: alwaysIgnore.concat(moreIgnored).map(function (v) { return new RegExp(v); })
         });
         watcher.on('error', function (e) {
             logging_1.logError('watcher experienced an error', e.stack || e);
@@ -154,6 +157,9 @@ exports.startWatching = function (watchOpts, cb) {
             });
         });
         watcher.on('change', function (f) {
+            if (!path.isAbsolute(f)) {
+                f = path.resolve(projectRoot + '/' + f);
+            }
             logging_1.logInfo('file change event for path => ', f);
             suman_utils_1.default.findNearestRunAndTransform(projectRoot, f, function (err, ret) {
                 if (err) {

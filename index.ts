@@ -60,6 +60,26 @@ export interface ISumanTranspileData {
   bashFilePath: string
 }
 
+interface ISrcConfigProp {
+  marker: string
+}
+
+interface ITargetConfigProp {
+  marker: string
+}
+
+interface IatConfigFile {
+  '@run': Object,
+  '@transform': Object,
+  '@src': ISrcConfigProp,
+  '@target': ITargetConfigProp
+}
+
+interface IConfigItem {
+  path: string,
+  data: IatConfigFile
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////
 
 //   /___jb_old___/,
@@ -71,9 +91,10 @@ const alwaysIgnore = [
   '___jb_tmp___',
   '/node_modules/',
   '/.git/',
-  '.*\.log$',
-  '.*\.json$',
-  '/logs/'
+  '\\.log$',
+  '\\.json$',
+  '/logs/',
+  '/@target/'
 ];
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -113,7 +134,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
             return process.nextTick(cb);
           }
 
-          const p = path.resolve(getTransformPaths[key] + '/@config.json');
+          const p = path.resolve(key + '/@config.json');
 
           fs.readFile(p, 'utf8', function (err: Error, data: string) {
 
@@ -187,6 +208,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
       logGood('\nTranspilation results:\n');
 
       results.transpileAll.forEach(function (t: ISumanTransformResult) {
+
         if (t.code > 0) {
           logError('transform result error => ', util.inspect(t));
         }
@@ -220,15 +242,22 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
         }
       });
 
-      let watcher = chokidar.watch(testSrcDir, {
-        cwd: projectRoot,
+      const moreIgnored = results.getIgnorePathsFromConfigs.filter(function (item: IConfigItem) {
+          return item.data && item.data['@target'] && item.data['@target']['marker'];
+        })
+        .map(function (item: IConfigItem) {
+
+
+          return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/,''));
+        });
+
+      console.log('more ignored => ', moreIgnored);
+
+      let watcher = chokidar.watch(testDir, {
+        // cwd: projectRoot,
         persistent: true,
         ignoreInitial: true,
-        ignored: [
-          /___jb_old___/,
-          /___jb_tmp___/,
-          /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/
-        ]
+        ignored: alwaysIgnore.concat(moreIgnored).map(v => new RegExp(v))
       });
 
       watcher.on('error', function (e: Error) {
@@ -252,6 +281,10 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
       });
 
       watcher.on('change', function (f: string) {
+
+        if(!path.isAbsolute(f)){
+          f = path.resolve(projectRoot + '/' + f);
+        }
 
         logInfo('file change event for path => ', f);
 

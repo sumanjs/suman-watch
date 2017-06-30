@@ -28,10 +28,6 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
 
     const cb = su.once(this, $cb);
 
-    // if(!transformPath){
-    //   return process.nextTick(cb);
-    // }
-
     console.log('transformData => ',util.inspect(transformData));
 
     let transformPath: string;
@@ -67,6 +63,8 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
         return cb(err);
       }
 
+      console.log('test path in transform => ', f);
+
       const k = cp.spawn('bash', [], {
         cwd: projectRoot,
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
@@ -78,7 +76,7 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
         })
       });
 
-      console.log('transform path => ', transformPath);
+      console.log('XXX transform path => ', transformPath);
 
       fs.createReadStream(transformPath).pipe(k.stdin);
 
@@ -88,12 +86,14 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
 
       let stdout = '';
       k.stdout.setEncoding('utf8');
+      k.stdout.pipe(process.stdout);
       k.stdout.on('data', function (d: string) {
         stdout += d;
       });
 
       let stderr = '';
       k.stderr.setEncoding('utf8');
+      k.stderr.pipe(process.stderr);
       k.stderr.on('data', function (d: string) {
         stderr += d;
       });
@@ -106,6 +106,8 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
       }, 1000000);
 
       k.once('exit', function (code: number) {
+
+        console.log('transpile has exited with code => ', code);
 
         clearTimeout(to);
 
