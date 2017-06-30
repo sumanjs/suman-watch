@@ -22,4 +22,4 @@ export interface ISumanTranspileData {
     basePath: string;
     bashFilePath: string;
 }
-export declare const startWatching: (watchOpts: ISumanWatchOptions, cb: Function) => void;
+export declare const startWatching: (watchOpts: ISumanWatchOptions, cb?: Function) => void;

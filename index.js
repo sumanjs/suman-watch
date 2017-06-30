@@ -1,17 +1,17 @@
+#!/usr/bin/env node
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 var process = require('suman-browser-polyfills/modules/process');
 var global = require('suman-browser-polyfills/modules/global');
 var util = require("util");
 var path = require("path");
-var fs = require("fs");
+var cp = require("child_process");
 var logging_1 = require("./lib/logging");
 var async = require("async");
 var suman_utils_1 = require("suman-utils");
 var chokidar = require("chokidar");
 var chalk = require("chalk");
-var make_transpile_1 = require("./lib/make-transpile");
-var make_execute_1 = require("./lib/make-execute");
+var utils_1 = require("./lib/utils");
 var make_transpile_all_1 = require("./lib/make-transpile-all");
 var alwaysIgnore = [
     '___jb_old___',
@@ -23,19 +23,17 @@ var alwaysIgnore = [
     '/logs/',
     '/@target/'
 ];
+var onSIG = function () {
+    logging_1.logInfo('suman watch is exiting.');
+    process.exit(139);
+};
+process.on('SIGINT', onSIG);
+process.on('SIGTERM', onSIG);
 exports.startWatching = function (watchOpts, cb) {
-    var onSIG = function () {
-        logging_1.logInfo('suman watch is exiting.');
-        process.exit(139);
-    };
-    process.on('SIGINT', onSIG);
-    process.on('SIGTERM', onSIG);
     var projectRoot = suman_utils_1.default.findProjectRoot(process.cwd());
     var testDir = process.env['TEST_DIR'];
     var testSrcDir = process.env['TEST_SRC_DIR'];
-    var transpile = make_transpile_1.makeTranspile(watchOpts, projectRoot);
     var transpileAll = make_transpile_all_1.makeTranspileAll(watchOpts, projectRoot);
-    var execute = make_execute_1.makeExecute(watchOpts, projectRoot);
     async.autoInject({
         getTransformPaths: function (cb) {
             if (watchOpts.noTranspile) {
@@ -45,26 +43,7 @@ exports.startWatching = function (watchOpts, cb) {
             suman_utils_1.default.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testDir, [], cb);
         },
         getIgnorePathsFromConfigs: function (getTransformPaths, cb) {
-            async.map(Object.keys(getTransformPaths), function (key, cb) {
-                if (!getTransformPaths[key]['@config.json']) {
-                    return process.nextTick(cb);
-                }
-                var p = path.resolve(key + '/@config.json');
-                fs.readFile(p, 'utf8', function (err, data) {
-                    if (err) {
-                        return cb(err);
-                    }
-                    try {
-                        cb(null, {
-                            path: p,
-                            data: JSON.parse(data)
-                        });
-                    }
-                    catch (err) {
-                        cb(err);
-                    }
-                });
-            }, cb);
+            utils_1.find(getTransformPaths, cb);
         },
         transpileAll: function (getTransformPaths, cb) {
             console.log(util.inspect(getTransformPaths));
@@ -135,7 +114,15 @@ exports.startWatching = function (watchOpts, cb) {
             .map(function (item) {
             return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/, ''));
         });
-        console.log('more ignored => ', moreIgnored);
+        var startScript = path.resolve(__dirname + '/start.js');
+        var k = cp.spawn(startScript, [], {
+            cwd: projectRoot,
+            env: Object.assign({}, process.env, {
+                SUMAN_TOTAL_IGNORED: JSON.stringify(moreIgnored),
+                SUMAN_PROJECT_ROOT: projectRoot,
+                SUMAN_WATCH_OPTS: JSON.stringify(watchOpts)
+            })
+        });
         var watcher = chokidar.watch(testDir, {
             persistent: true,
             ignoreInitial: true,
@@ -156,44 +143,31 @@ exports.startWatching = function (watchOpts, cb) {
                 watched: watched
             });
         });
-        watcher.on('change', function (f) {
-            if (!path.isAbsolute(f)) {
-                f = path.resolve(projectRoot + '/' + f);
-            }
-            logging_1.logInfo('file change event for path => ', f);
-            suman_utils_1.default.findNearestRunAndTransform(projectRoot, f, function (err, ret) {
-                if (err) {
-                    logging_1.logError("error locating @run.sh / @transform.sh for file " + f + ".\n" + err);
-                    return;
-                }
-                transpile(f, ret, function (err) {
-                    if (err) {
-                        logging_1.logError("error running transpile process for file " + f + ".\n" + err);
-                        return;
-                    }
-                    execute(f, ret, function (err, result) {
-                        if (err) {
-                            logging_1.logError("error executing corresponding test process for source file " + f + ".\n" + (err.stack || err));
-                            return;
-                        }
-                        var stdout = result.stdout, stderr = result.stderr, code = result.code;
-                        console.log('\n');
-                        console.error('\n');
-                        logging_1.logInfo("your corresponding test process for path " + f + ", exited with code " + code);
-                        if (code > 0) {
-                            logging_1.logError("there was an error executing your test with path " + f + ", because the exit code was greater than 0.");
-                        }
-                        if (stderr) {
-                            logging_1.logWarning("the stderr for path " + f + ", is as follows =>\n" + chalk.yellow(stderr) + ".");
-                            console.error('\n');
-                        }
-                        if (stdout) {
-                            logging_1.logInfo("the stdout for path " + f + ", is as follows =>\n" + stdout + ".");
-                            console.log('\n');
-                        }
-                    });
-                });
+        var killAndRestart = function () {
+            watcher.close();
+            k.kill('SIGINT');
+            setImmediate(function () {
+                exports.startWatching(watchOpts);
             });
+        };
+        var to;
+        watcher.on('change', function (p) {
+            if (utils_1.isPathMatchesSig(path.basename(p))) {
+                clearTimeout(to);
+                to = setTimeout(killAndRestart, 5000);
+            }
+        });
+        watcher.on('add', function (p) {
+            if (utils_1.isPathMatchesSig(path.basename(p))) {
+                clearTimeout(to);
+                to = setTimeout(killAndRestart, 5000);
+            }
+        });
+        watcher.on('unlink', function (p) {
+            if (utils_1.isPathMatchesSig(path.basename(p))) {
+                clearTimeout(to);
+                to = setTimeout(killAndRestart, 5000);
+            }
         });
     });
 };

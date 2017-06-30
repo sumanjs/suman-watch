@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 'use strict';
 
 //typescript imports
@@ -14,6 +15,7 @@ import * as path from 'path';
 import * as EE from 'events';
 import * as fs from 'fs';
 import * as stream from 'stream';
+import * as cp from 'child_process';
 
 //npm
 import {logInfo, logError, logWarning, logVeryGood, logGood} from './lib/logging';
@@ -24,6 +26,7 @@ import * as chalk from 'chalk';
 import {Pool} from 'poolio';
 
 //project
+import {find, getAlwaysIgnore, isPathMatchesSig} from './lib/utils';
 import {makeTranspile} from './lib/make-transpile';
 import {makeExecute} from './lib/make-execute';
 import {makeTranspileAll} from './lib/make-transpile-all';
@@ -97,24 +100,22 @@ const alwaysIgnore = [
   '/@target/'
 ];
 
+const onSIG = function () {
+  logInfo('suman watch is exiting.');
+  process.exit(139);
+};
+
+process.on('SIGINT', onSIG);
+process.on('SIGTERM', onSIG);
+
 //////////////////////////////////////////////////////////////////////////////////////
 
-export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Function): void {
-
-  const onSIG = function () {
-    logInfo('suman watch is exiting.');
-    process.exit(139);
-  };
-
-  process.on('SIGINT', onSIG);
-  process.on('SIGTERM', onSIG);
+export const startWatching = function (watchOpts: ISumanWatchOptions, cb?: Function): void {
 
   const projectRoot = su.findProjectRoot(process.cwd());
   const testDir = process.env['TEST_DIR'];
   const testSrcDir = process.env['TEST_SRC_DIR'];
-  const transpile = makeTranspile(watchOpts, projectRoot);
   const transpileAll = makeTranspileAll(watchOpts, projectRoot);
-  const execute = makeExecute(watchOpts, projectRoot);
 
   async.autoInject({
 
@@ -127,35 +128,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
       },
 
       getIgnorePathsFromConfigs: function (getTransformPaths: IMap, cb: AsyncResultArrayCallback<Error, Iterable<any>>) {
-
-        async.map(Object.keys(getTransformPaths), function (key, cb: Function) {
-
-          if (!getTransformPaths[key]['@config.json']) {
-            return process.nextTick(cb);
-          }
-
-          const p = path.resolve(key + '/@config.json');
-
-          fs.readFile(p, 'utf8', function (err: Error, data: string) {
-
-            if (err) {
-              return cb(err);
-            }
-
-            try {
-              cb(null, {
-                path: p,
-                data: JSON.parse(data)
-              });
-            }
-            catch (err) {
-              cb(err);
-            }
-
-          });
-
-        }, cb)
-
+        find(getTransformPaths, cb);
       },
 
       transpileAll: function (getTransformPaths: IMap, cb: AsyncResultArrayCallback<Error, Iterable<any>>) {
@@ -246,12 +219,21 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
           return item.data && item.data['@target'] && item.data['@target']['marker'];
         })
         .map(function (item: IConfigItem) {
-
-
-          return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/,''));
+          return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/, ''));
         });
 
-      console.log('more ignored => ', moreIgnored);
+
+      const startScript = path.resolve(__dirname + '/start.js');
+
+      const k = cp.spawn(startScript, [], {
+          cwd: projectRoot,
+          env: Object.assign({}, process.env, {
+            SUMAN_TOTAL_IGNORED: JSON.stringify(moreIgnored),
+            SUMAN_PROJECT_ROOT: projectRoot,
+            SUMAN_WATCH_OPTS: JSON.stringify(watchOpts)
+          })
+      });
+
 
       let watcher = chokidar.watch(testDir, {
         // cwd: projectRoot,
@@ -280,60 +262,35 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
         });
       });
 
-      watcher.on('change', function (f: string) {
-
-        if(!path.isAbsolute(f)){
-          f = path.resolve(projectRoot + '/' + f);
-        }
-
-        logInfo('file change event for path => ', f);
-
-        su.findNearestRunAndTransform(projectRoot, f, function (err: Error, ret: INearestRunAndTransformRet) {
-
-          if (err) {
-            logError(`error locating @run.sh / @transform.sh for file ${f}.\n${err}`);
-            return;
-          }
-
-          transpile(f, ret, function (err: Error) {
-
-            if (err) {
-              logError(`error running transpile process for file ${f}.\n${err}`);
-              return;
-            }
-
-            execute(f, ret, function (err: Error, result: ISumanWatchResult) {
-
-              if (err) {
-                logError(`error executing corresponding test process for source file ${f}.\n${err.stack || err}`);
-                return;
-              }
-
-              const {stdout, stderr, code} = result;
-
-              console.log('\n');
-              console.error('\n');
-
-              logInfo(`your corresponding test process for path ${f}, exited with code ${code}`);
-
-              if (code > 0) {
-                logError(`there was an error executing your test with path ${f}, because the exit code was greater than 0.`);
-              }
-
-              if (stderr) {
-                logWarning(`the stderr for path ${f}, is as follows =>\n${chalk.yellow(stderr)}.`);
-                console.error('\n');
-              }
-
-              if (stdout) {
-                logInfo(`the stdout for path ${f}, is as follows =>\n${stdout}.`);
-                console.log('\n');
-              }
-
-            });
-          });
-
+      let killAndRestart = function () {
+        watcher.close();
+        k.kill('SIGINT');
+        setImmediate(function(){
+          startWatching(watchOpts);
         });
+      };
+
+      let to: NodeJS.Timer;
+
+      watcher.on('change', function (p) {
+        if (isPathMatchesSig(path.basename(p))) {
+          clearTimeout(to);
+          to = setTimeout(killAndRestart, 5000);
+        }
+      });
+
+      watcher.on('add', function (p) {
+        if (isPathMatchesSig(path.basename(p))) {
+          clearTimeout(to);
+          to = setTimeout(killAndRestart, 5000);
+        }
+      });
+
+      watcher.on('unlink', function (p) {
+        if (isPathMatchesSig(path.basename(p))) {
+          clearTimeout(to);
+          to = setTimeout(killAndRestart, 5000);
+        }
       });
 
     });
