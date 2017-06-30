@@ -42,9 +42,7 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
     if (transformData.config && transformData.config.length >= transformLength) {
       try {
         const config = require(transformData.config);
-        console.log('config => ', config);
         const plugin = config['@transform']['plugin']['value'];
-        console.log(' plugin => ', plugin);
         if (plugin) {
           transformPath = require(plugin).getTransformPath();
         }
@@ -73,6 +71,8 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
         cwd: projectRoot,
         stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
         env: Object.assign({}, process.env, {
+          SUMAN_PROJECT_ROOT: projectRoot,
+          // SUMAN_CHILD_TEST_PATH: f,
           SUMAN_TEST_PATHS: JSON.stringify([f]),
           SUMAN_TRANSFORM_ALL_SOURCES: 'no'
         })

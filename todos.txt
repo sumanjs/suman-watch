@@ -22,3 +22,10 @@ process.stdin should listen for rr for "rerun", and this will rerun the most rec
 https://github.com/TypeStrong/ts-node
 
 // move the transpilation code to suman-utils, so that suman can reference it too?
+
+Have to handle temporary file changes -
+___jb_tmp___, etc.
+
+
+when a file is added, re-run/re-start everything - so that the file - watcher thing is in a child-process
+beautiful!

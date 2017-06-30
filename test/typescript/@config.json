@@ -1,4 +1,10 @@
 {
+  "@src": {
+    "marker": "/@src/"
+  },
+  "@target": {
+    "marker": "/@target/"
+  },
   "@run": {
     "plugin": {
       "location": "npm",

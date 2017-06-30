@@ -62,6 +62,25 @@ export interface ISumanTranspileData {
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
+
+//   /___jb_old___/,
+//   /___jb_tmp___/,
+//   /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/
+
+
+const alwaysIgnore = [
+  '___jb_old___',
+  '___jb_tmp___',
+  '/node_modules/',
+  '/.git/',
+  '.*\.log$',
+  '.*\.json$',
+  '/logs/'
+];
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+
 export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Function): void {
 
   const onSIG = function () {
@@ -73,6 +92,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
   process.on('SIGTERM', onSIG);
 
   const projectRoot = su.findProjectRoot(process.cwd());
+  const testDir = process.env['TEST_DIR'];
   const testSrcDir = process.env['TEST_SRC_DIR'];
   const transpile = makeTranspile(watchOpts, projectRoot);
   const transpileAll = makeTranspileAll(watchOpts, projectRoot);
@@ -85,7 +105,7 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
           logInfo('watch process will not get all transform paths, because we are not transpiling.');
           return process.nextTick(cb);
         }
-        su.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testSrcDir, [], cb);
+        su.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testDir, [], cb);
       },
 
       transpileAll: function (getTransformPaths: IMap, cb: AsyncResultArrayCallback<Error, Iterable<any>>) {
@@ -133,8 +153,8 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
         throw err;
       }
 
-      console.log('\n');
-      logGood('Transpilation results:\n');
+      logGood('\nTranspilation results:\n');
+
       results.transpileAll.forEach(function (t: ISumanTransformResult) {
         if (t.code > 0) {
           logError('transform result error => ', util.inspect(t));
@@ -170,9 +190,14 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
       });
 
       let watcher = chokidar.watch(testSrcDir, {
-        ignored: /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/,
+        cwd: projectRoot,
         persistent: true,
-        ignoreInitial: true
+        ignoreInitial: true,
+        ignored: [
+          /___jb_old___/,
+          /___jb_tmp___/,
+          /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/
+        ]
       });
 
       watcher.on('error', function (e: Error) {
@@ -221,6 +246,9 @@ export const startWatching = function (watchOpts: ISumanWatchOptions, cb: Functi
               }
 
               const {stdout, stderr, code} = result;
+
+              console.log('\n');
+              console.error('\n');
 
               logInfo(`your corresponding test process for path ${f}, exited with code ${code}`);
 

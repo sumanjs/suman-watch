@@ -12,6 +12,15 @@ var chalk = require("chalk");
 var make_transpile_1 = require("./lib/make-transpile");
 var make_execute_1 = require("./lib/make-execute");
 var make_transpile_all_1 = require("./lib/make-transpile-all");
+var alwaysIgnore = [
+    '___jb_old___',
+    '___jb_tmp___',
+    '/node_modules/',
+    '/.git/',
+    '.*\.log$',
+    '.*\.json$',
+    '/logs/'
+];
 exports.startWatching = function (watchOpts, cb) {
     var onSIG = function () {
         logging_1.logInfo('suman watch is exiting.');
@@ -20,6 +29,7 @@ exports.startWatching = function (watchOpts, cb) {
     process.on('SIGINT', onSIG);
     process.on('SIGTERM', onSIG);
     var projectRoot = suman_utils_1.default.findProjectRoot(process.cwd());
+    var testDir = process.env['TEST_DIR'];
     var testSrcDir = process.env['TEST_SRC_DIR'];
     var transpile = make_transpile_1.makeTranspile(watchOpts, projectRoot);
     var transpileAll = make_transpile_all_1.makeTranspileAll(watchOpts, projectRoot);
@@ -30,7 +40,7 @@ exports.startWatching = function (watchOpts, cb) {
                 logging_1.logInfo('watch process will not get all transform paths, because we are not transpiling.');
                 return process.nextTick(cb);
             }
-            suman_utils_1.default.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testSrcDir, [], cb);
+            suman_utils_1.default.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testDir, [], cb);
         },
         transpileAll: function (getTransformPaths, cb) {
             if (watchOpts.noTranspile) {
@@ -67,8 +77,7 @@ exports.startWatching = function (watchOpts, cb) {
         if (err) {
             throw err;
         }
-        console.log('\n');
-        logging_1.logGood('Transpilation results:\n');
+        logging_1.logGood('\nTranspilation results:\n');
         results.transpileAll.forEach(function (t) {
             if (t.code > 0) {
                 logging_1.logError('transform result error => ', util.inspect(t));
@@ -96,9 +105,14 @@ exports.startWatching = function (watchOpts, cb) {
             }
         });
         var watcher = chokidar.watch(testSrcDir, {
-            ignored: /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/,
+            cwd: projectRoot,
             persistent: true,
-            ignoreInitial: true
+            ignoreInitial: true,
+            ignored: [
+                /___jb_old___/,
+                /___jb_tmp___/,
+                /(\/@target\/|\/node_modules\/|@run.sh$|@transform.sh$|.*\.log$|.*\.json$|\/logs\/)/
+            ]
         });
         watcher.on('error', function (e) {
             logging_1.logError('watcher experienced an error', e.stack || e);
@@ -133,6 +147,8 @@ exports.startWatching = function (watchOpts, cb) {
                             return;
                         }
                         var stdout = result.stdout, stderr = result.stderr, code = result.code;
+                        console.log('\n');
+                        console.error('\n');
                         logging_1.logInfo("your corresponding test process for path " + f + ", exited with code " + code);
                         if (code > 0) {
                             logging_1.logError("there was an error executing your test with path " + f + ", because the exit code was greater than 0.");
