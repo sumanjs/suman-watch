@@ -1,3 +1,5 @@
+remove usages of require, so as to avoid caching files that may change
+
 create babel run and babel transform
 
 create pool of bash workers beforehand? => can't set env and cwd after the fact?

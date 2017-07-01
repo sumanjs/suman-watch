@@ -42,13 +42,38 @@ watcher.once('ready', function () {
     logging_1.default.veryGood('number of files being watched by suman-watch => ', watchCount);
 });
 watcher.on('change', function (f) {
-    if (!path.isAbsolute(f)) {
-        f = path.resolve(projectRoot + '/' + f);
+    if (utils_1.isPathMatchesSig(path.basename(f))) {
+        return;
     }
+    var dn = path.basename(path.dirname(f));
+    var canonicalDirname = String('/' + dn + '/').replace(/\/+/g, '/');
+    if (!path.isAbsolute(f)) {
+        throw new Error('suman watch implementation error - watched paths must be absolute.');
+    }
+    delete require.cache[f];
     logging_1.default.info('file change event for path => ', f);
     suman_utils_1.default.findNearestRunAndTransform(projectRoot, f, function (err, ret) {
         if (err) {
             logging_1.default.error("error locating @run.sh / @transform.sh for file " + f + ".\n" + err);
+            return;
+        }
+        var matched = false;
+        try {
+            var config = require(ret.config);
+            var match = config['@src']['marker'];
+            var canonicalMatch = String('/' + match + '/').replace(/\/+/g, '/');
+            if (canonicalDirname.match(new RegExp(canonicalMatch))) {
+                matched = true;
+            }
+        }
+        catch (err) {
+            console.error(err.stack);
+            if (dn.match(/\@src\//)) {
+                matched = true;
+            }
+        }
+        if (!matched) {
+            logging_1.default.error('could not find a match for file.');
             return;
         }
         transpile(f, ret, function (err) {

@@ -79,24 +79,12 @@ module.exports = Object.freeze({
 
   watch: {
 
-    '//tests': {
-      'default': {  // (re) execute the test file that changed
-        script: function (p) {
-          return `./node_modules/.bin/suman ${p}`
-        },
-        include: [],
-        exclude: ['^test.*']
-      }
-    },
-
-    '//project': {
-      'default': {  //run all tests when a file changes in project
-        script: './node_modules/.bin/suman',
-        include: [],
-        exclude: ['^test.*']
-      }
-
-    },
+    'zoom': {
+      exec: 'echo "charlie"',
+      include: [],
+      exclude: ['^test.*'],
+      confOverride: {}
+    }
   },
 
   reporters: {

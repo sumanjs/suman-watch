@@ -1,2 +1,1 @@
-import { ISumanTranspileData, ISumanWatchOptions } from "../index";
-export declare const makeTranspileAll: (watchOpts: ISumanWatchOptions, projectRoot: string) => (transformPaths: ISumanTranspileData[], cb: AsyncResultArrayCallback<Error, Iterable<any>>) => void;
+export declare const makeTranspileAll: (watchOpts: any, projectRoot: string) => (transformPaths: any[], cb: AsyncResultArrayCallback<Error, Iterable<any>>) => void;

@@ -70,3 +70,6 @@ export const find = function (getTransformPaths: IMap, cb: AsyncResultArrayCallb
   }, cb)
 
 };
+
+const $exports = module.exports;
+export default $exports;

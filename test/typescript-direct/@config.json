@@ -1,17 +1,21 @@
 {
   "@src": {
-    "marker": "/@src/"
+    "comment":"",
+    "marker": "/mice/"
   },
   "@target": {
+    "comment":"",
     "marker": "/sam/"
   },
   "@run": {
+    "comment":"",
     "plugin": {
       "location": "npm",
       "value": "suman-run-plugins/plugins/ts-node"
     }
   },
   "@transform": {
-    "prevent": true
+    "comment":"xx",
+    "prevent": false
   }
 }

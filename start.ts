@@ -23,8 +23,6 @@ import {makeTranspile} from './lib/make-transpile';
 import {makeExecute} from './lib/make-execute';
 import {makeTranspileAll} from './lib/make-transpile-all';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './lib/utils';
-
-//project
 import log from './lib/logging';
 import {ISumanWatchResult} from "./index";
 
@@ -44,13 +42,13 @@ let watcher = chokidar.watch(testDir, {
   ignored: getAlwaysIgnore().concat(ignored).map((v: string) => new RegExp(v))
 });
 
-process.once('exit', function(){
+process.once('exit', function () {
   watcher.close();
 });
 
-process.on('SIGINT', function(){
-  watcher.on('close', function(){
-     process.exit(0);
+process.on('SIGINT', function () {
+  watcher.on('close', function () {
+    process.exit(0);
   });
   watcher.close();
 });
@@ -72,12 +70,22 @@ watcher.once('ready', function () {
   log.veryGood('number of files being watched by suman-watch => ', watchCount);
 });
 
-
 watcher.on('change', function (f: string) {
 
-  if(!path.isAbsolute(f)){
-    f = path.resolve(projectRoot + '/' + f);
+  if (isPathMatchesSig(path.basename(f))) {
+    // in this case, we are going to restart this process
+    return;
   }
+
+  let dn = path.basename(path.dirname(f));
+  const canonicalDirname = String('/' + dn + '/').replace(/\/+/g, '/');
+
+  if (!path.isAbsolute(f)) {
+     throw new Error('suman watch implementation error - watched paths must be absolute.');
+  }
+
+  // clear out the cache for this file, because it has changed!
+  delete require.cache[f];
 
   log.info('file change event for path => ', f);
 
@@ -85,6 +93,28 @@ watcher.on('change', function (f: string) {
 
     if (err) {
       log.error(`error locating @run.sh / @transform.sh for file ${f}.\n${err}`);
+      return;
+    }
+
+    let matched = false;
+
+    try {
+      const config = require(ret.config);
+      const match = config['@src']['marker'];
+      const canonicalMatch = String('/' + match + '/').replace(/\/+/g, '/');
+      if (canonicalDirname.match(new RegExp(canonicalMatch))) {
+        matched = true;
+      }
+    }
+    catch (err) {
+      console.error(err.stack);
+      if (dn.match(/\@src\//)) {
+        matched = true;
+      }
+    }
+
+    if (!matched) {
+      log.error('could not find a match for file.');
       return;
     }
 

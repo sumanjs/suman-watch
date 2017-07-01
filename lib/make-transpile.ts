@@ -38,13 +38,13 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
     if (transformData.config && transformData.config.length >= transformLength) {
       try {
         const config = require(transformData.config);
-        try{
-          const prevent = config['@transform']['prevent'];
-          if(prevent === true){
+        try {
+          if (config['@transform']['prevent'] === true) {
+            log.info('we are not transpiling this file because "prevent" is set to true in @config.json.')
             return process.nextTick(cb);
           }
         }
-        catch(err){
+        catch (err) {
           /* noop */
         }
 
@@ -54,7 +54,7 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
         }
       }
       catch (err) {
-        log.error(err.message || err);
+        /* noop */
       }
     }
 
@@ -63,7 +63,8 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
         transformPath = transformData.transform;
       }
       else {
-        return process.nextTick(cb, new Error('no transform path could be found.'));
+        log.error('no transform method could be found.');
+        return process.nextTick(cb);
       }
     }
 
