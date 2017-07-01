@@ -1,7 +1,5 @@
 remove usages of require, so as to avoid caching files that may change
 
-create babel run and babel transform
-
 create pool of bash workers beforehand? => can't set env and cwd after the fact?
 
 async lib types => https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/async/index.d.ts#L112
@@ -21,18 +19,12 @@ make sure watch path passed by user does not include a directory below the proje
 
 process.stdin should listen for rr for "rerun", and this will rerun the most recent test.
 
-
 // compile TS file to node
 https://github.com/TypeStrong/ts-node
 
 // move the transpilation code to suman-utils, so that suman can reference it too?
 
-Have to handle temporary file changes -
-___jb_tmp___, etc.
-
-
-when a file is added, re-run/re-start everything - so that the file - watcher thing is in a child-process
-beautiful! the reason to do this - is if the user changes a config.json file or @transform.sh file,
-or adds the file, then we need to start over. We should debounce it to 3 or 4 seconds.
-
 support hooking into transpilation "hot"/live watch processes, so we don't have to transpile from scratch
+in other words, hook into tsc -w
+
+//

@@ -30,7 +30,8 @@ export const getAlwaysIgnore = function () {
     '/.git/',
     '\\.log$',
     '/logs/',
-    '/@target/'
+    '/@target/',
+    '\.txt$'   ///////////
   ];
 
 };

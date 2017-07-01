@@ -127,6 +127,8 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
     });
   });
 
+  //
+
   let createWorker = function () {
     return cp.spawn('bash', [], {
       stdio: ['pipe', 'inherit', 'inherit']
