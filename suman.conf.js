@@ -82,7 +82,7 @@ module.exports = Object.freeze({
     per: {
       'zoom': {
         exec: 'echo "charlie"',
-        includes: [__dirname],
+        includes: ['.'],
         excludes: ['/test/','/node_modules/','/.git'],
         confOverride: {}
       }
