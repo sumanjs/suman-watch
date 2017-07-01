@@ -28,3 +28,5 @@ support hooking into transpilation "hot"/live watch processes, so we don't have 
 in other words, hook into tsc -w
 
 //
+
+create bats test with bash
