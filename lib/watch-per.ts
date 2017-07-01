@@ -43,28 +43,25 @@ const alwaysIgnore = utils.getAlwaysIgnore();
 
 ///////////////////////////////////////////////////////////////////////////////
 
-export const run = function (projectRoot: string, watchOpts: ISumanWatchOptions, cb?: Function) {
+export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
 
-  const first = function (err: Error | undefined) {
-    if (callable) {
-      callable = false;
-      cb.apply(this, arguments);
-    }
-  };
+  const projectRoot = su.findProjectRoot(process.cwd());
 
   // we should re-load suman config, in case it has changed, etc.
   const p = path.resolve(projectRoot + '/suman.conf.js');
   delete require.cache[p];
   const sumanConfig = require(p);
 
-  let watchObj;
+  let watchObj = watchOpts.watchPer;
 
-  try {
-    watchObj = sumanConfig['watch']['per'][String(watchOpts.watchPer).trim()];
-  }
-  catch (err) {
-    return first(err);
-  }
+  console.log('watch obj => ', util.inspect(watchObj));
+
+  // try {
+  //   watchObj = sumanConfig['watch']['per'][String(watchOpts.watchPer).trim()];
+  // }
+  // catch (err) {
+  //   return first(err);
+  // }
 
   const includesErr = '"{suman.conf.js}.watch.per" entries must have an "includes" property ' +
     'which is a string or array of strings.';
@@ -79,13 +76,17 @@ export const run = function (projectRoot: string, watchOpts: ISumanWatchOptions,
     assert(Array.isArray(watchObj.excludes) || su.isStringWithPositiveLn(watchObj.excludes), excludesErr);
   }
 
-  const includes = _.flattenDeep(watchObj.includes).filter((i: string) => i).forEach(function (v: string) {
+  const includes = _.flattenDeep(watchObj.includes).filter((i: string) => i);
+
+  includes.forEach(function (v: string) {
     if (typeof v !== 'string') {
       throw includesErr;
     }
   });
 
-  const excludes = _.flattenDeep(watchObj.excludes).filter((i: string) => i).forEach(function (v: string | RegExp) {
+  const excludes = _.flattenDeep(watchObj.excludes).filter((i: string) => i);
+
+  excludes.forEach(function (v: string | RegExp) {
     if (typeof v !== 'string' && !(v instanceof RegExp)) {
       throw excludesErr;
     }
@@ -126,12 +127,18 @@ export const run = function (projectRoot: string, watchOpts: ISumanWatchOptions,
     });
   });
 
+  let createWorker = function () {
+    return cp.spawn('bash', [], {
+      stdio: ['pipe', 'inherit', 'inherit']
+    })
+  };
+
   let running = {
-    k: cp.spawn('bash')
+    k: createWorker()
   };
 
   let startWorker = function () {
-    return running.k = cp.spawn('bash');
+    return running.k = createWorker()
   };
 
   let onEvent = function (name: string) {

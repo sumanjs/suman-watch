@@ -1,5 +1,4 @@
-export interface ISumanWatchPerItem {
-}
+import { ISumanWatchPerItem } from "./index";
 export interface ISumanWatchResult {
     code: number;
     stdout: string;

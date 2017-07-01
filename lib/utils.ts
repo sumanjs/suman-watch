@@ -22,6 +22,8 @@ const sig = ['@run.sh', '@transform.sh', '@config.json'];
 export const getAlwaysIgnore = function () {
 
   return [
+    '.DS_Store',
+    '/.idea/',
     '___jb_old___',
     '___jb_tmp___',
     '/node_modules/',

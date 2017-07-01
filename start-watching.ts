@@ -32,12 +32,9 @@ import {find, getAlwaysIgnore, isPathMatchesSig} from './lib/utils';
 import {makeTranspile} from './lib/make-transpile';
 import {makeExecute} from './lib/make-execute';
 import {makeTranspileAll} from './lib/make-transpile-all';
+import {ISumanWatchPerItem} from "./index";
 
 ///////////////////////////////////////////////////////////////
-
-export interface ISumanWatchPerItem {
-
-}
 
 export interface ISumanWatchResult {
   code: number,
@@ -227,7 +224,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
           SUMAN_PROJECT_ROOT: projectRoot,
           SUMAN_WATCH_OPTS: JSON.stringify(watchOpts)
         }),
-        stdio: ['pipe','pipe','pipe','ipc']
+        stdio: ['pipe', 'pipe', 'pipe', 'ipc']
       });
 
       k.stdout.pipe(pt(chalk.black.bold(' [watch-worker] '))).pipe(process.stdout);

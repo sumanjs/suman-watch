@@ -79,11 +79,13 @@ module.exports = Object.freeze({
 
   watch: {
 
-    'zoom': {
-      exec: 'echo "charlie"',
-      include: [],
-      exclude: ['^test.*'],
-      confOverride: {}
+    per: {
+      'zoom': {
+        exec: 'echo "charlie"',
+        includes: [__dirname],
+        excludes: ['/test/','/node_modules/','/.git'],
+        confOverride: {}
+      }
     }
   },
 

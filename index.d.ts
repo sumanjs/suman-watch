@@ -1,2 +1,10 @@
 import { ISumanWatchOptions } from "./start-watching";
-export declare const run: (projectRoot: string, watchOpts: ISumanWatchOptions, cb?: Function) => void;
+export interface ISumanWatchPerItem {
+    includes: string | Array<string>;
+    excludes: string | RegExp | Array<string | RegExp>;
+    exec: string;
+    confOverride: Partial<Object>;
+}
+export declare const run: (watchOpts: ISumanWatchOptions, cb?: Function) => void;
+declare const $exports: any;
+export default $exports;

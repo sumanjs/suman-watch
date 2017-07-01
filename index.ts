@@ -1,12 +1,28 @@
 import {ISumanWatchOptions} from "./start-watching";
 
-export const run = function (projectRoot: string, watchOpts: ISumanWatchOptions, cb?: Function) {
+export interface ISumanWatchPerItem {
+  includes: string | Array<string>,
+  excludes: string | RegExp | Array<string | RegExp>,
+  exec: string,
+  confOverride: Partial<Object>
+}
+
+import log from './lib/logging';
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
 
   if (watchOpts.watchPer) {
-    require('./lib/watch-per').run(projectRoot, watchOpts, cb);
+    log.warning('running watchPer');
+    require('./lib/watch-per').run(watchOpts, cb);
   }
   else {
-    require('./start-watching').run(projectRoot, watchOpts, cb);
+    log.warning('running regular shit');
+    require('./start-watching').run(watchOpts, cb);
   }
 
 };
+
+const $exports = module.exports;
+export default $exports;
