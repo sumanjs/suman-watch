@@ -6,12 +6,12 @@ const os = require('os');
 const path = require('path');
 const numOfCPUs = os.cpus().length || 1;
 
-////////////////////////////////////////////////
+/////////////////////////////////////////////////////
 
 module.exports = Object.freeze({
 
   // Array<regex>
-  matchAny: ['.js'],                              //recommended regex for "matchAny" => [/\.test\.js$/],
+  matchAny: ['\.js$'],           //recommended regex for "matchAny" => [/\.test\.js$/],
   matchNone: [/fixture/],        //recommended regex for "matchNone" => [/fixture/],
   matchAll: [],                 //recommended regex for "matchAll" => [],
 
@@ -78,12 +78,11 @@ module.exports = Object.freeze({
   },
 
   watch: {
-
     per: {
       'zoom': {
-        exec: 'echo "charlie"',
-        includes: ['.'],
-        excludes: ['/test/','/node_modules/','/.git'],
+        exec: 'suman test',
+        includes: [__dirname],
+        excludes: ['/test/','/node_modules/','/.git/'],
         confOverride: {}
       }
     }

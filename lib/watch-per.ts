@@ -54,8 +54,6 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
 
   let watchObj = watchOpts.watchPer;
 
-  console.log('watch obj => ', util.inspect(watchObj));
-
   // try {
   //   watchObj = sumanConfig['watch']['per'][String(watchOpts.watchPer).trim()];
   // }
@@ -118,10 +116,12 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
     let watched = watcher.getWatched();
 
     Object.keys(watched).forEach(function (k) {
-      watchCount += watched[k].length;
+      let ln = watched[k].length;
+      watchCount += ln;
+      log.good(`${ln} items watched in this dir => `, k);
     });
 
-    log.veryGood('number of files being watched by suman-watch => ', watchCount);
+    log.veryGood('total number of files being watched by suman-watch => ', watchCount);
     cb && cb(null, {
       watched
     });
