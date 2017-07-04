@@ -118,7 +118,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
         su.findSumanMarkers(['@run.sh', '@transform.sh', '@config.json'], testDir, [], cb);
       },
 
-      getIgnorePathsFromConfigs: function (getTransformPaths: IMap, cb: AsyncResultArrayCallback<Error, Iterable<any>>) {
+      getIgnorePathsFromConfigs: function (getTransformPaths: IMap, cb: AsyncResultArrayCallback<Iterable<any>, Error>) {
         find(getTransformPaths, cb);
       },
 

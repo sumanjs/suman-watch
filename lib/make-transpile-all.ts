@@ -27,7 +27,7 @@ import log from './logging';
 
 export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, projectRoot: string) {
 
-  return function (transformPaths: Array<ISumanTranspileData>, cb: AsyncResultArrayCallback<Error, Iterable<any>>) {
+  return function (transformPaths: Array<ISumanTranspileData>, cb: AsyncResultArrayCallback<Iterable<any>, Error>) {
 
     const sumanConfig = require(path.resolve(projectRoot + '/suman.conf.js'));
 
@@ -38,7 +38,6 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
     async.mapLimit(filtered, 4, function (t: ISumanTranspileData, $cb: Function) {
 
       const cb = su.once(this, $cb);
-
 
       su.findApplicablePathsGivenTransform(sumanConfig, t.basePath, function (err: Error, results: Array<string>) {
 
