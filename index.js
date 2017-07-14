@@ -11,5 +11,3 @@ exports.run = function (watchOpts, cb) {
         require('./start-watching').run(watchOpts, cb);
     }
 };
-var $exports = module.exports;
-exports.default = $exports;

@@ -23,6 +23,3 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
   }
 
 };
-
-const $exports = module.exports;
-export default $exports;

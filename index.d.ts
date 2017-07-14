@@ -6,5 +6,3 @@ export interface ISumanWatchPerItem {
     confOverride: Partial<Object>;
 }
 export declare const run: (watchOpts: ISumanWatchOptions, cb?: Function) => void;
-declare const $exports: any;
-export default $exports;
