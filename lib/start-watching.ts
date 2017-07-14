@@ -170,7 +170,6 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
       }
 
       console.log('\n');
-
       log.good('Transpilation results:\n');
 
       results.transpileAll.forEach(function (t: ISumanTransformResult) {
