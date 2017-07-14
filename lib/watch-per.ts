@@ -1,40 +1,31 @@
 #!/usr/bin/env node
 'use strict';
 
-//typescript imports
-import {IMapCallback, IMap, INearestRunAndTransformRet} from 'suman-utils';
+//dts
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
 const global = require('suman-browser-polyfills/modules/global');
 
 //core
-import * as util from 'util';
-import * as assert from 'assert';
-import * as path from 'path';
+import util = require('util');
+import assert = require('assert');
+import path = require('path');
 import * as EE from 'events';
-import * as fs from 'fs';
+import fs = require('fs');
 import * as stream from 'stream';
-import * as cp from 'child_process';
+import cp = require('child_process');
 
 //npm
 import * as _ from 'lodash';
 import log from './logging';
-import * as async from 'async';
 import su from 'suman-utils';
 import * as chokidar from 'chokidar';
-import * as chalk from 'chalk';
-import {Pool} from 'poolio';
-import pt from 'prepend-transform';
+
 
 //project
-import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
-import {makeTranspile} from './make-transpile';
-import {makeExecute} from './make-execute';
-import {makeTranspileAll} from './make-transpile-all';
 import utils from './utils';
 import {ISumanWatchOptions} from "../start-watching";
-import {ChildProcess} from "child_process";
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -54,13 +45,6 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
 
   let watchObj = watchOpts.watchPer;
 
-  // try {
-  //   watchObj = sumanConfig['watch']['per'][String(watchOpts.watchPer).trim()];
-  // }
-  // catch (err) {
-  //   return first(err);
-  // }
-
   const includesErr = '"{suman.conf.js}.watch.per" entries must have an "includes" property ' +
     'which is a string or array of strings.';
 
@@ -74,7 +58,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
     assert(Array.isArray(watchObj.excludes) || su.isStringWithPositiveLn(watchObj.excludes), excludesErr);
   }
 
-  const includes = _.flattenDeep(watchObj.includes).filter((i: string) => i);
+  const includes = _.flattenDeep([watchObj.includes]).filter((i: string) => i);
 
   includes.forEach(function (v: string) {
     if (typeof v !== 'string') {
@@ -82,7 +66,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
     }
   });
 
-  const excludes = _.flattenDeep(watchObj.excludes).filter((i: string) => i);
+  const excludes = _.flattenDeep([watchObj.excludes]).filter((i: string) => i);
 
   excludes.forEach(function (v: string | RegExp) {
     if (typeof v !== 'string' && !(v instanceof RegExp)) {
@@ -127,11 +111,10 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
     });
   });
 
-  //
 
   let createWorker = function () {
     return cp.spawn('bash', [], {
-      stdio: ['pipe', 'inherit', 'inherit']
+      stdio: ['pipe', process.sdtout, process.stderr]
     })
   };
 

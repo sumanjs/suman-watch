@@ -3,11 +3,11 @@ const process = require('suman-browser-polyfills/modules/process');
 const global = require('suman-browser-polyfills/modules/global');
 
 //core
-import * as util from 'util';
-import * as assert from 'assert';
-import * as path from 'path';
+import util = require('util');
+import assert = require('assert');
+import path = require('path');
 import * as EE from 'events';
-import * as fs from 'fs';
+import fs = require('fs');
 import * as stream from 'stream';
 
 //npm

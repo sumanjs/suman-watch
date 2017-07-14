@@ -5,4 +5,4 @@ export interface ISumanWatchPerItem {
     exec: string;
     confOverride: Partial<Object>;
 }
-export declare const run: (watchOpts: ISumanWatchOptions, cb?: Function) => void;
+export declare const run: (watchOpts: Partial<ISumanWatchOptions>, cb?: Function) => void;

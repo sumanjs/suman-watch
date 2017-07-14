@@ -107,7 +107,7 @@ exports.run = function (watchOpts, cb) {
             }
         });
         var moreIgnored = results.getIgnorePathsFromConfigs.filter(function (item) {
-            return item.data && item.data['@target'] && item.data['@target']['marker'];
+            return item && item.data && item.data['@target'] && item.data['@target']['marker'];
         })
             .map(function (item) {
             return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/, ''));

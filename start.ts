@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 'use strict';
 
+//dts
+import {ISumanWatchResult} from "./start-watching";
+
 //core
-import * as util from 'util';
-import * as assert from 'assert';
-import * as path from 'path';
+import util = require('util');
+import assert = require('assert');
+import path = require('path');
 import * as EE from 'events';
-import * as fs from 'fs';
+import fs = require('fs');
 import * as stream from 'stream';
-import * as cp from 'child_process';
+import cp = require('child_process');
 
 //npm
 
@@ -24,7 +27,7 @@ import {makeExecute} from './lib/make-execute';
 import {makeTranspileAll} from './lib/make-transpile-all';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './lib/utils';
 import log from './lib/logging';
-import {ISumanWatchResult} from "./index";
+
 
 /////////////////////////////////////////////////////////////////////
 
@@ -73,7 +76,7 @@ watcher.once('ready', function () {
 watcher.on('change', function (f: string) {
 
   if (isPathMatchesSig(path.basename(f))) {
-    // in this case, we are going to restart this process
+    // in this case, we are going to restart this process, so let's just return here
     return;
   }
 

@@ -1,5 +1,5 @@
 import {Pool} from "poolio";
-import * as path from 'path';
+import path = require('path');
 
 
 //polyfills

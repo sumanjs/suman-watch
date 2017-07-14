@@ -11,7 +11,7 @@ import log from './lib/logging';
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
+export const run = function (watchOpts: Partial<ISumanWatchOptions>, cb?: Function) {
 
   if (watchOpts.watchPer) {
     log.warning('running watchPer');

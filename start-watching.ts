@@ -9,13 +9,13 @@ const process = require('suman-browser-polyfills/modules/process');
 const global = require('suman-browser-polyfills/modules/global');
 
 //core
-import * as util from 'util';
-import * as assert from 'assert';
-import * as path from 'path';
+import util = require('util');
+import assert = require('assert');
+import path = require('path');
 import * as EE from 'events';
-import * as fs from 'fs';
+import fs = require('fs');
 import * as stream from 'stream';
-import * as cp from 'child_process';
+import cp = require('child_process');
 
 //npm
 import log from './lib/logging';
@@ -208,7 +208,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
       });
 
       const moreIgnored = results.getIgnorePathsFromConfigs.filter(function (item: IConfigItem) {
-          return item.data && item.data['@target'] && item.data['@target']['marker'];
+          return item && item.data && item.data['@target'] && item.data['@target']['marker'];
         })
         .map(function (item: IConfigItem) {
           return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/, ''));

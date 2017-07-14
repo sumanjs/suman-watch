@@ -1,16 +1,17 @@
-import {ISumanWatchOptions} from "../index";
-
+'use strict';
+//dts
+import {ISumanWatchOptions} from "../start-watching";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
 const global = require('suman-browser-polyfills/modules/global');
 
 //core
-import * as util from 'util';
-import * as assert from 'assert';
-import * as path from 'path';
-import * as cp from 'child_process';
-import * as fs from 'fs';
+import util = require('util');
+import assert = require('assert');
+import path = require('path');
+import cp = require('child_process');
+import fs = require('fs');
 
 //npm
 import su, {INearestRunAndTransformRet} from 'suman-utils';
