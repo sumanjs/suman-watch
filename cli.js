@@ -2,6 +2,28 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var dashdash = require("dashdash");
 var index = require("./index");
+var residence = require("residence");
+var path = require("path");
+var log = require("./lib/logging");
+var projectRoot = residence.findProjectRoot(process.cwd());
+if (!projectRoot) {
+    log.error('your project root could not be found.');
+    process.exit(1);
+}
+var sumanConf;
+try {
+    sumanConf = require(projectRoot + '/suman.conf.js');
+}
+catch (err) {
+    log.error('cannot find suman.conf.js in your project root.');
+    log.error("your project root was presumed to be: " + projectRoot + ".");
+    process.exit(1);
+}
+var testDir = process.env.TEST_DIR = sumanConf.testDir;
+if (!testDir) {
+    testDir = process.env.TEST_DIR = path.resolve(projectRoot + '/test');
+}
+log.info('testDir => ', testDir);
 var options = require('./lib/cmd-opts');
 var opts, parser = dashdash.createParser({ options: options });
 try {

@@ -98,6 +98,8 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
   const testSrcDir = process.env['TEST_SRC_DIR'];
   const transpileAll = makeTranspileAll(watchOpts, projectRoot);
 
+  console.log('testDir => ', testDir);
+
   // we should re-load suman config, in case it has changed, etc.
   const p = path.resolve(projectRoot + '/suman.conf.js');
   delete require.cache[p];

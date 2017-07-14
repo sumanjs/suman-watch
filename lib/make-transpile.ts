@@ -24,7 +24,11 @@ import log from './logging';
 
 export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoot: string) {
 
-  return function transpile(f: string, transformData: INearestRunAndTransformRet, $cb: Function) {
+  return function transpile(f: string, transformData: INearestRunAndTransformRet, isTranspile: boolean, $cb: Function) {
+
+    if(isTranspile === false){
+      return process.nextTick($cb);
+    }
 
     const cb = su.once(this, $cb);
 

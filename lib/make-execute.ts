@@ -1,6 +1,6 @@
 'use strict';
 //dts
-import {ISumanWatchOptions} from "../start-watching";
+import {ISumanWatchOptions} from "./start-watching";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -52,11 +52,13 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
       }
     }
 
-    su.makePathExecutable(runPath || f, function (err: Error) {
+    // su.makePathExecutable(runPath || f, function (err: Error) {
+    //
+    //   if (err) {
+    //     return cb(err);
+    //   }
 
-      if (err) {
-        return cb(err);
-      }
+    // if we "make path executable" it
 
       let k;
 
@@ -122,7 +124,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
 
       });
 
-    });
+    // });
 
   };
 

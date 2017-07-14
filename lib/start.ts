@@ -14,7 +14,6 @@ import * as stream from 'stream';
 import cp = require('child_process');
 
 //npm
-
 import * as async from 'async';
 import su, {IMap, INearestRunAndTransformRet} from 'suman-utils';
 import * as chokidar from 'chokidar';
@@ -26,7 +25,6 @@ import {makeTranspile} from './make-transpile';
 import {makeExecute} from './make-execute';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
 import log from './logging';
-
 
 /////////////////////////////////////////////////////////////////////
 
@@ -80,10 +78,28 @@ watcher.on('change', function (f: string) {
   }
 
   let dn = path.basename(path.dirname(f));
+  console.log('dn => ', dn);
   const canonicalDirname = String('/' + dn + '/').replace(/\/+/g, '/');
+  console.log('canonicalDirname => ', canonicalDirname);
 
+  let originalFile;
+  let resolvedWithRoot = false;
   if (!path.isAbsolute(f)) {
-     throw new Error('suman watch implementation error - watched paths must be absolute.');
+    originalFile = f;
+    f = path.resolve(projectRoot + '/' + f);
+    resolvedWithRoot = true;
+    // throw new Error(`suman watch implementation error - watched paths must be absolute - "${f}"`);
+  }
+
+  try {
+    fs.statSync(f);
+  }
+  catch (err) {
+    if (originalFile) {
+      console.error('file was resolved against project root => ', originalFile);
+      console.error(`this file may have been resolved incorrectly; it was resolved to "${f}".`);
+      throw new Error(`suman watch implementation error - watched paths must be absolute - "${originalFile}"`);
+    }
   }
 
   // clear out the cache for this file, because it has changed!
@@ -103,24 +119,27 @@ watcher.on('change', function (f: string) {
     try {
       const config = require(ret.config);
       const match = config['@src']['marker'];
+      console.log('match => ', match);
       const canonicalMatch = String('/' + match + '/').replace(/\/+/g, '/');
+      console.log('canonicalMatch => ', canonicalMatch);
       if (canonicalDirname.match(new RegExp(canonicalMatch))) {
+        console.log('canonicalDirname matched canonicalMatch');
+        console.log(`${canonicalDirname} matched ${canonicalMatch}`);
         matched = true;
       }
     }
     catch (err) {
       console.error(err.stack);
-      if (dn.match(/\@src\//)) {
+      if (dn.match(/\/@src\//)) {
         matched = true;
       }
     }
 
     if (!matched) {
-      log.error('could not find a match for file.');
-      return;
+      log.error('file will not be transpiled.');
     }
 
-    transpile(f, ret, function (err: Error) {
+    transpile(f, ret, matched, function (err: Error) {
 
       if (err) {
         log.error(`error running transpile process for file ${f}.\n${err}`);

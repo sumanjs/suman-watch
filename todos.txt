@@ -17,6 +17,7 @@ suman --watch-as-per="zam"
 
 make sure watch path passed by user does not include a directory below the project
 
+process.stdin should listen for rs for "restart", and this will restart the watcher.
 process.stdin should listen for rr for "rerun", and this will rerun the most recent test.
 
 // compile TS file to node
