@@ -1,4 +1,4 @@
-import { ISumanWatchOptions } from "./start-watching";
+import { ISumanWatchOptions } from "./lib/start-watching";
 export interface ISumanWatchPerItem {
     includes: string | Array<string>;
     excludes: string | RegExp | Array<string | RegExp>;

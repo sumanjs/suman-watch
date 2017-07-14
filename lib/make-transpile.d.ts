@@ -1,1 +1,2 @@
-export declare const makeTranspile: (watchOpts: any, projectRoot: string) => (f: string, transformData: any, $cb: Function) => any;
+import { INearestRunAndTransformRet } from 'suman-utils';
+export declare const makeTranspile: (watchOpts: any, projectRoot: string) => (f: string, transformData: INearestRunAndTransformRet, $cb: Function) => any;

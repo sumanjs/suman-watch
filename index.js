@@ -8,6 +8,6 @@ exports.run = function (watchOpts, cb) {
     }
     else {
         logging_1.default.warning('running regular shit');
-        require('./start-watching').run(watchOpts, cb);
+        require('./lib/start-watching').run(watchOpts, cb);
     }
 };

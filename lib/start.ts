@@ -22,11 +22,10 @@ import * as chalk from 'chalk';
 import {Pool} from 'poolio';
 
 //project
-import {makeTranspile} from './lib/make-transpile';
-import {makeExecute} from './lib/make-execute';
-import {makeTranspileAll} from './lib/make-transpile-all';
-import {find, getAlwaysIgnore, isPathMatchesSig} from './lib/utils';
-import log from './lib/logging';
+import {makeTranspile} from './make-transpile';
+import {makeExecute} from './make-execute';
+import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
+import log from './logging';
 
 
 /////////////////////////////////////////////////////////////////////

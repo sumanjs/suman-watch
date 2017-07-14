@@ -1,4 +1,4 @@
-import {ISumanWatchOptions} from "./start-watching";
+import {ISumanWatchOptions} from "./lib/start-watching";
 
 export interface ISumanWatchPerItem {
   includes: string | Array<string>,
@@ -19,7 +19,7 @@ export const run = function (watchOpts: Partial<ISumanWatchOptions>, cb?: Functi
   }
   else {
     log.warning('running regular shit');
-    require('./start-watching').run(watchOpts, cb);
+    require('./lib/start-watching').run(watchOpts, cb);
   }
 
 };

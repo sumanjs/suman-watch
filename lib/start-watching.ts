@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-//typescript imports
-import {IMapCallback, IMap, INearestRunAndTransformRet} from 'suman-utils';
+//dts
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -12,15 +11,12 @@ const global = require('suman-browser-polyfills/modules/global');
 import util = require('util');
 import assert = require('assert');
 import path = require('path');
-import * as EE from 'events';
 import fs = require('fs');
-import * as stream from 'stream';
 import cp = require('child_process');
 
 //npm
-import log from './lib/logging';
 import * as async from 'async';
-import su from 'suman-utils';
+import su, {IMapCallback, IMap, INearestRunAndTransformRet} from 'suman-utils';
 
 import * as chokidar from 'chokidar';
 import * as chalk from 'chalk';
@@ -28,11 +24,10 @@ import {Pool} from 'poolio';
 import pt from 'prepend-transform';
 
 //project
-import {find, getAlwaysIgnore, isPathMatchesSig} from './lib/utils';
-import {makeTranspile} from './lib/make-transpile';
-import {makeExecute} from './lib/make-execute';
-import {makeTranspileAll} from './lib/make-transpile-all';
-import {ISumanWatchPerItem} from "./index";
+import log from './logging';
+import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
+import {makeTranspileAll} from './make-transpile-all';
+import {ISumanWatchPerItem} from "../index";
 
 ///////////////////////////////////////////////////////////////
 
