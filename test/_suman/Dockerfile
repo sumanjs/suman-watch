@@ -6,17 +6,20 @@ FROM node:7
 #RUN apt-get update && \
 #      apt-get -y install sudo
 
-
 RUN chmod -R 777 $(npm root -g)
-
 RUN mkdir -p /usr/src/app
-
 WORKDIR /usr/src/app
 
-COPY symlinked-project .
+COPY package.json .
+RUN npm install
+RUN npm install github:sumanjs/suman#rebase_branch
 
-RUN chmod -R 777 .
+COPY . .
 
+RUN (cd node_modules && ls -a)
 
+RUN (cd node_modules/suman && ls -a)
 
-# ENTRYPOINT ["/usr/src/app/test.sh"]
+#CMD ["node","/usr/src/app/node_modules/suman/cli.js"]
+
+ENTRYPOINT ["/usr/src/app/node_modules/suman/cli.js"]

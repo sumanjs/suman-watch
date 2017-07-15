@@ -1,25 +1,33 @@
 #!/usr/bin/env bash
 
+# docker run -it your-dockerized-suman-tests-image /bin/bash
+
 cd $(dirname "$0");
 npm_root="$(npm root)";
 project_root="$(cd ${npm_root} && cd .. && pwd)";
 
 project_basename="$(basename ${project_root})";
-expected_symlink="symlinked-project/$project_basename";
 
-if [[ ! -L ${expected_symlink} ]]; then
-    mkdir -p symlinked-project
-    ln -s "${project_root}" ${expected_symlink}
-fi
+image_tag="your-dockerized-suman-tests-image";
+container_name="your-dockerized-suman-tests"
 
-echo "$project_root"
+dockerfile_root="${project_root}/$(uuidgen)"
 
-symlinked_nm="$(pwd)/${expected_symlink}/node_modules"; # symlinked project's node_modules dir
+cp Dockerfile ${dockerfile_root}
 
-echo "symlinked_nm => $symlinked_nm"
+#
+#docker rmi -f $(docker images --no-trunc | grep "<none>" | awk "{print \$3}")
+#docker rmi -f $(docker images --no-trunc | grep "${image_tag}" | awk "{print \$3}")
+#docker rmi -f ${image_tag}
+#
 
-docker stop your-dockerized-suman-tests;
-docker rm your-dockerized-suman-tests;
+docker stop ${container_name} || echo "no container needed to be stopped";
+docker rm ${container_name} ||  echo "no container needed to be removed";
 
-docker build -t your-dockerized-suman-tests-image .
-docker run -v ${symlinked_nm}:/usr/src/app --name your-dockerized-suman-tests your-dockerized-suman-tests-image
+#cp ${project_root} symlinked-project
+docker build -t ${image_tag} -f ${dockerfile_root} ${project_root} # > /dev/null
+
+rm -rf ${dockerfile_root};
+echo "removed temporary Dockerfile with id ${dockerfile_root}"
+docker run -v "${project_root}/node_modules":/usr/src/app --name  ${container_name} ${image_tag}
+
