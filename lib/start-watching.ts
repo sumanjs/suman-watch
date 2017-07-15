@@ -263,18 +263,28 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
 
       let to: NodeJS.Timer;
 
+      let restartProcess = function(){
+
+        log.warning(`we will ${chalk.magenta.bold('refresh')} the watch processed based on this event, in 5 seconds 
+            if no other changes occur in the meantime.`);
+        clearTimeout(to);
+        to = setTimeout(killAndRestart, 8000);
+      };
+
       let onEvent = function (eventName: string) {
         return function (p: string) {
           log.info(eventName, 'event :', p);
           const inRequireCache = require.cache[p];
           delete require.cache[p];
-          log.warning('the following file was in the require cache => ', p);
-          log.warning('therefore we will restart the whole watch process.');
-          if (inRequireCache || isPathMatchesSig(path.basename(p))) {
-            log.warning(`we will ${chalk.magenta.bold('refresh')} the watch processed based on this event, in 5 seconds 
-            if no other changes occur in the meantime.`);
-            clearTimeout(to);
-            to = setTimeout(killAndRestart, 8000);
+          if(inRequireCache){
+            log.warning('the following file was in the require cache => ', p);
+            log.warning('therefore we will restart the whole watch process.');
+            restartProcess();
+          }
+          if (isPathMatchesSig(path.basename(p))) {
+            log.warning('the following file was a "signifcant" file => ', p);
+            log.warning('therefore we will restart the whole watch process.');
+            restartProcess();
           }
         };
       };

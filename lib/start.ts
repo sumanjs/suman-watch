@@ -8,17 +8,13 @@ import {ISumanWatchResult} from "./start-watching";
 import util = require('util');
 import assert = require('assert');
 import path = require('path');
-import * as EE from 'events';
 import fs = require('fs');
-import * as stream from 'stream';
 import cp = require('child_process');
 
 //npm
-import * as async from 'async';
 import su, {IMap, INearestRunAndTransformRet} from 'suman-utils';
 import * as chokidar from 'chokidar';
 import * as chalk from 'chalk';
-import {Pool} from 'poolio';
 
 //project
 import {makeTranspile} from './make-transpile';
@@ -78,9 +74,7 @@ watcher.on('change', function (f: string) {
   }
 
   let dn = path.basename(path.dirname(f));
-  console.log('dn => ', dn);
   const canonicalDirname = String('/' + dn + '/').replace(/\/+/g, '/');
-  console.log('canonicalDirname => ', canonicalDirname);
 
   let originalFile;
   let resolvedWithRoot = false;
@@ -119,12 +113,8 @@ watcher.on('change', function (f: string) {
     try {
       const config = require(ret.config);
       const match = config['@src']['marker'];
-      console.log('match => ', match);
       const canonicalMatch = String('/' + match + '/').replace(/\/+/g, '/');
-      console.log('canonicalMatch => ', canonicalMatch);
       if (canonicalDirname.match(new RegExp(canonicalMatch))) {
-        console.log('canonicalDirname matched canonicalMatch');
-        console.log(`${canonicalDirname} matched ${canonicalMatch}`);
         matched = true;
       }
     }

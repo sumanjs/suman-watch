@@ -3,7 +3,7 @@
     "marker": "/@src/"
   },
   "@target": {
-    "marker": "/sam/"
+    "marker": "/@target/"
   },
   "@run": {
     "plugin": {

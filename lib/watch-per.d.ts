@@ -1,1 +1,2 @@
-export declare const run: (watchOpts: any, cb?: Function) => void;
+import { ISumanWatchOptions } from "./start-watching";
+export declare const run: (watchOpts: ISumanWatchOptions, cb?: Function) => void;

@@ -2,6 +2,7 @@
 'use strict';
 
 //dts
+import {ISumanWatchOptions} from "./start-watching";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -22,10 +23,8 @@ import log from './logging';
 import su from 'suman-utils';
 import * as chokidar from 'chokidar';
 
-
 //project
 import utils from './utils';
-import {ISumanWatchOptions} from "../start-watching";
 
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -59,15 +58,13 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
   }
 
   const includes = _.flattenDeep([watchObj.includes]).filter((i: string) => i);
-
   includes.forEach(function (v: string) {
-    if (typeof v !== 'string') {
+    if (typeof v !== 'string' && !(v instanceof RegExp)) {
       throw includesErr;
     }
   });
 
   const excludes = _.flattenDeep([watchObj.excludes]).filter((i: string) => i);
-
   excludes.forEach(function (v: string | RegExp) {
     if (typeof v !== 'string' && !(v instanceof RegExp)) {
       throw excludesErr;
@@ -110,7 +107,6 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
       watched
     });
   });
-
 
   let createWorker = function () {
     return cp.spawn('bash', [], {

@@ -20,6 +20,8 @@ import su, {INearestRunAndTransformRet} from 'suman-utils';
 //project
 import {workerPool} from './worker-pool';
 import log from './logging';
+import {IPoolioChildProcess} from "poolio";
+import {ChildProcess} from "child_process";
 const bashPool = [];
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,6 +55,35 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
       }
     }
 
+    let handleStdioAndExit = function (k: ChildProcess, runPath: string, f: string) {
+
+      let stdout = '';
+      k.stdout.setEncoding('utf8');
+      k.stdout.pipe(process.stdout);
+      k.stdout.on('data', function (d: string) {
+        stdout += d;
+      });
+
+      let stderr = '';
+      k.stderr.setEncoding('utf8');
+      k.stderr.pipe(process.stderr);
+      k.stderr.on('data', function (d: string) {
+        stderr += d;
+      });
+
+      k.once('exit', function (code: number) {
+
+        cb(null, {
+          path: f,
+          runPath,
+          code,
+          stdout: String(stdout).trim(),
+          stderr: String(stderr).trim()
+        });
+
+      });
+    };
+
     // su.makePathExecutable(runPath || f, function (err: Error) {
     //
     //   if (err) {
@@ -81,6 +112,8 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
 
       fs.createReadStream(runPath).pipe(k.stdin);
 
+      handleStdioAndExit(k, runPath, null);
+
     }
     else {
 
@@ -100,31 +133,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
             })
           });
 
-          let stdout = '';
-          k.stdout.setEncoding('utf8');
-          k.stdout.pipe(process.stdout);
-          k.stdout.on('data', function (d: string) {
-            stdout += d;
-          });
-
-          let stderr = '';
-          k.stderr.setEncoding('utf8');
-          k.stderr.pipe(process.stderr);
-          k.stderr.on('data', function (d: string) {
-            stderr += d;
-          });
-
-          k.once('exit', function (code: number) {
-
-            cb(null, {
-              path: f,
-              runPath,
-              code,
-              stdout: String(stdout).trim(),
-              stderr: String(stderr).trim()
-            });
-
-          });
+          handleStdioAndExit(k, runPath, f);
         };
 
         const client = net.createConnection({port: 9091}, () => {
@@ -181,31 +190,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
           })
         });
 
-        let stdout = '';
-        k.stdout.setEncoding('utf8');
-        k.stdout.pipe(process.stdout);
-        k.stdout.on('data', function (d: string) {
-          stdout += d;
-        });
-
-        let stderr = '';
-        k.stderr.setEncoding('utf8');
-        k.stderr.pipe(process.stderr);
-        k.stderr.on('data', function (d: string) {
-          stderr += d;
-        });
-
-        k.once('exit', function (code: number) {
-
-          cb(null, {
-            path: f,
-            runPath,
-            code,
-            stdout: String(stdout).trim(),
-            stderr: String(stderr).trim()
-          });
-
-        });
+        handleStdioAndExit(k, runPath, f);
       }
 
     }
