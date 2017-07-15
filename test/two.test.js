@@ -7,7 +7,7 @@ const Test = suman.init(module);
 
 Test.create('one', function(it){
 
-  it('fling', t => {
+  it('two botch', t => {
 
   });
 
