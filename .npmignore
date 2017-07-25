@@ -1,0 +1,12 @@
+*.sh
+*.log
+*.json
+*.md
+*.txt
+*.ts
+!*.d.ts
+node_modules
+.idea
+test
+.tscmultiwatch
+suman.conf.js
