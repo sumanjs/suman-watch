@@ -42,8 +42,8 @@ process.once('exit', function () {
   watcher.close();
 });
 
-process.on('SIGINT', function () {
-  watcher.on('close', function () {
+process.once('SIGINT', function () {
+  watcher.once('close', function () {
     process.exit(0);
   });
   watcher.close();
@@ -90,9 +90,9 @@ watcher.on('change', function (f: string) {
   }
   catch (err) {
     if (originalFile) {
-      console.error('file was resolved against project root => ', originalFile);
-      console.error(`this file may have been resolved incorrectly; it was resolved to "${f}".`);
-      throw new Error(`suman watch implementation error - watched paths must be absolute - "${originalFile}"`);
+      log.error('file was resolved against project root => ', originalFile);
+      log.error(`this file may have been resolved incorrectly; it was resolved to: "${f}".`);
+      throw new Error(`'suman-watch' implementation error - watched paths must be absolute -> \n\t "${originalFile}"`);
     }
   }
 
@@ -111,15 +111,19 @@ watcher.on('change', function (f: string) {
     let matched = false;
 
     try {
-      const config = require(ret.config);
-      const match = config['@src']['marker'];
-      const canonicalMatch = String('/' + match + '/').replace(/\/+/g, '/');
-      if (canonicalDirname.match(new RegExp(canonicalMatch))) {
-        matched = true;
+      if (ret.config) {
+        const config = require(ret.config);
+        const match = config['@src']['marker'];
+        const canonicalMatch = String('/' + match + '/').replace(/\/+/g, '/');
+        if (canonicalDirname.match(new RegExp(canonicalMatch))) {
+          matched = true;
+        }
       }
     }
     catch (err) {
-      console.error(err.stack);
+      log.error(err.stack || err);
+    }
+    finally {
       if (dn.match(/\/@src\//)) {
         matched = true;
       }
@@ -143,10 +147,19 @@ watcher.on('change', function (f: string) {
           return;
         }
 
+
         const {stdout, stderr, code} = result;
 
+        if(code === -1){
+          // the file was not run, maybe it was an .html or .json file or .xml file, etc.
+          return;
+        }
+
+        if(code === undefined){
+          log.warning('suman-watcher implementation warning, exit code was undefined.');
+        }
+
         console.log('\n');
-        console.error('\n');
 
         log.info(`your corresponding test process for path ${f}, exited with code ${code}`);
 
@@ -156,13 +169,8 @@ watcher.on('change', function (f: string) {
 
         if (stderr) {
           log.warning(`the stderr for path ${f}, is as follows =>\n${chalk.yellow(stderr)}.`);
-          console.error('\n');
+          console.log('\n');
         }
-
-        // if (stdout) {
-        //   log.info(`the stdout for path ${f}, is as follows =>\n${stdout}.`);
-        //   console.log('\n');
-        // }
 
       });
     });

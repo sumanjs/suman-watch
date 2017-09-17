@@ -8,12 +8,12 @@ const global = require('suman-browser-polyfills/modules/global');
 import * as chalk from 'chalk';
 
 //project
-const name = ' => [suman-watch] => ';
-export const info = console.log.bind(console, name);
+const name = ' [suman-watcher] ';
+export const info = console.log.bind(console, chalk.cyan(name));
 export const good = console.log.bind(console, chalk.cyan(name));
 export const veryGood = console.log.bind(console, chalk.green(name));
-export const warning = console.log.bind(console, chalk.yellow.bold(name));
-export const error = console.log.bind(console, chalk.red(name));
+export const warning = console.error.bind(console, chalk.yellow.bold(name));
+export const error = console.error.bind(console, chalk.red(name));
 
 export const newLine = function(){
   console.log('\n');

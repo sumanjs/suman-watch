@@ -18,7 +18,8 @@ export const run = function (watchOpts: Partial<ISumanWatchOptions>, cb?: Functi
     require('./lib/watch-per').run(watchOpts, cb);
   }
   else {
-    log.warning('running regular shit');
+    log.info('Running standard test script watcher.');
+    log.info('When changes are saved to a test script, that test script will be executed.');
     require('./lib/start-watching').run(watchOpts, cb);
   }
 

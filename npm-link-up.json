@@ -9,10 +9,12 @@
   ],
   "list": [
     "residence",
+    "prepend-transform",
+    "poolio",
+    
     "suman-utils",
     "suman-events",
     "suman-debug",
-    "poolio",
     "suman-browser-polyfills"
   ]
 }

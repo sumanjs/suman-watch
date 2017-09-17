@@ -16,12 +16,14 @@ import net = require('net');
 
 //npm
 import su, {INearestRunAndTransformRet} from 'suman-utils';
+import pt from 'prepend-transform';
 
 //project
 import {workerPool} from './worker-pool';
 import log from './logging';
 import {IPoolioChildProcess} from "poolio";
 import {ChildProcess} from "child_process";
+
 const bashPool = [];
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,19 +86,11 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
       });
     };
 
-    // su.makePathExecutable(runPath || f, function (err: Error) {
-    //
-    //   if (err) {
-    //     return cb(err);
-    //   }
-
-    // if we "make path executable" it
-
     let k;
 
     if (runPath) {
 
-      console.log('runPath => ', runPath);
+      log.info('runPath => ', runPath);
 
       k = cp.spawn('bash', [], {
         detached: false,
@@ -136,21 +130,21 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
           handleStdioAndExit(k, runPath, f);
         };
 
+        // if we are using Suman daemon, then we can use this?
         const client = net.createConnection({port: 9091}, () => {
-          //'connect' listener
-          console.log('connected to server!');
+          log.good('connected to server!');
           const cwdDir = path.dirname(f);
-          console.log('cwd-dir => ', cwdDir);
+          log.good('cwd-dir => ', cwdDir);
           client.write(JSON.stringify({pid: -1, cwd: cwdDir, args: [f]}) + '\r\n');
         });
 
         client.once('error', function (e) {
           if (/ECONNREFUSED/.test(e.message)) {
-            noDaemon();
+            process.nextTick(noDaemon);
           }
           else {
-            console.error('client connect error => ', e.stack || e);
-            cb(e);
+            log.error('client connect error => ', e.stack || e);
+            process.nextTick(cb, e);
           }
         });
 
@@ -159,7 +153,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
           endOk = true;
         });
 
-        client.pipe(process.stdout);
+        client.pipe(pt(` [watch-worker-via-daemon] `)).pipe(process.stdout);
 
         client.on('end', () => {
           if (endOk) {
@@ -176,12 +170,16 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
       }
       else {
 
-        console.log('file path  => ', f);
+        log.info('file path  => ', f);
+
+        if (['.html', '.json', '.xml'].includes(path.extname(f))) {
+          return process.nextTick(cb, null, {code: -1});
+        }
 
         k = cp.spawn(f, [], {
           detached: false,
           cwd: projectRoot,
-          stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+          stdio: ['ignore', 'pipe', 'pipe'],
           env: Object.assign({}, process.env, {
             SUMAN_PROJECT_ROOT: projectRoot,
             SUMAN_CHILD_TEST_PATH: f,
@@ -190,12 +188,14 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
           })
         });
 
+        k.once('error', function (e: Error) {
+          log.error(e.stack || e);
+        });
+
         handleStdioAndExit(k, runPath, f);
       }
 
     }
-
-    // });
 
   };
 

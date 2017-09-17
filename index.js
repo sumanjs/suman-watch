@@ -7,7 +7,8 @@ exports.run = function (watchOpts, cb) {
         require('./lib/watch-per').run(watchOpts, cb);
     }
     else {
-        logging_1.default.warning('running regular shit');
+        logging_1.default.info('Running standard test script watcher.');
+        logging_1.default.info('When changes are saved to a test script, that test script will be executed.');
         require('./lib/start-watching').run(watchOpts, cb);
     }
 };

@@ -1,12 +1,17 @@
-import {Pool} from "poolio";
-import path = require('path');
-
+'use strict';
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
 const global = require('suman-browser-polyfills/modules/global');
 
-/////////////////////////////////////////////////
+//core
+import path = require('path');
+
+//npm
+import {Pool} from "poolio";
+import log from './logging';
+
+/////////////////////////////////////////////////////////////////////
 
 const pool = new Pool({
   size: 3,
@@ -15,7 +20,7 @@ const pool = new Pool({
 });
 
 pool.on('error', function (e: Error) {
-  console.error(e.stack || e);
+  log.error(e.stack || e);
 });
 
 export const workerPool = pool;

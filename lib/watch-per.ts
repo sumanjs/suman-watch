@@ -12,9 +12,9 @@ const global = require('suman-browser-polyfills/modules/global');
 import util = require('util');
 import assert = require('assert');
 import path = require('path');
-import * as EE from 'events';
+import  EE = require('events');
 import fs = require('fs');
-import * as stream from 'stream';
+import stream = require('stream');
 import cp = require('child_process');
 
 //npm

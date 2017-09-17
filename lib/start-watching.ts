@@ -98,7 +98,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
   const testSrcDir = process.env['TEST_SRC_DIR'];
   const transpileAll = makeTranspileAll(watchOpts, projectRoot);
 
-  console.log('testDir => ', testDir);
+  log.info('testDir => ', testDir);
 
   // we should re-load suman config, in case it has changed, etc.
   const p = path.resolve(projectRoot + '/suman.conf.js');
@@ -128,35 +128,35 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
 
         const paths = Object.keys(getTransformPaths).map(function (key) {
 
-            if (getTransformPaths[key]['@transform.sh']) {
+          if (getTransformPaths[key]['@transform.sh']) {
+            return {
+              cwd: getTransformPaths[key],
+              basePath: path.resolve(key + '/@transform.sh'),
+              bashFilePath: path.resolve(key + '/@transform.sh')
+            };
+          }
+
+          if (getTransformPaths[key]['@config.json']) {
+            try {
+              const config = require(path.resolve(key + '/@config.json'));
+              const plugin = config['@transform']['plugin']['value'];
               return {
                 cwd: getTransformPaths[key],
-                basePath: path.resolve(key + '/@transform.sh'),
-                bashFilePath: path.resolve(key + '/@transform.sh')
+                basePath: path.resolve(key + '/@config.json'),
+                bashFilePath: require(plugin).getTransformPath()
               };
             }
-
-            if (getTransformPaths[key]['@config.json']) {
-              try {
-                const config = require(path.resolve(key + '/@config.json'));
-                const plugin = config['@transform']['plugin']['value'];
-                return {
-                  cwd: getTransformPaths[key],
-                  basePath: path.resolve(key + '/@config.json'),
-                  bashFilePath: require(plugin).getTransformPath()
-                };
-              }
-              catch (err) {
-                log.warning(err.message || err);
-                return {
-                  cwd: getTransformPaths[key],
-                  basePath: path.resolve(key + '/@config.json'),
-                  bashFilePath: null
-                };
-              }
+            catch (err) {
+              log.warning(err.message || err);
+              return {
+                cwd: getTransformPaths[key],
+                basePath: path.resolve(key + '/@config.json'),
+                bashFilePath: null
+              };
             }
-          })
-          .filter(i => i);
+          }
+        })
+        .filter(i => i);
 
         transpileAll(paths, cb);
 
@@ -193,7 +193,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
           const stderr = String(t.stderr).split('\n').filter(i => i);
 
           if (stderr.length > 0) {
-            console.error('\nstderr:\n');
+            log.error('\nstderr:\n');
             stderr.forEach(function (l) {
               log.warning('stderr:', l);
             });
@@ -204,11 +204,11 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
       });
 
       const moreIgnored = results.getIgnorePathsFromConfigs.filter(function (item: IConfigItem) {
-          return item && item.data && item.data['@target'] && item.data['@target']['marker'];
-        })
-        .map(function (item: IConfigItem) {
-          return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/, ''));
-        });
+        return item && item.data && item.data['@target'] && item.data['@target']['marker'];
+      })
+      .map(function (item: IConfigItem) {
+        return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/, ''));
+      });
 
       const startScript = path.resolve(__dirname + '/start.js');
 
@@ -224,7 +224,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
       });
 
       k.stdout.pipe(pt(chalk.black.bold(' [watch-worker] '))).pipe(process.stdout);
-      k.stderr.pipe(pt(chalk.yellow(' [watch-worker] '))).pipe(process.stderr);
+      k.stderr.pipe(pt(chalk.yellow(' [watch-worker] '), {omitWhitespace: true})).pipe(process.stderr);
 
       let watcher = chokidar.watch(testDir, {
         // cwd: projectRoot,
@@ -263,7 +263,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
 
       let to: NodeJS.Timer;
 
-      let restartProcess = function(){
+      let restartProcess = function () {
 
         log.warning(`we will ${chalk.magenta.bold('refresh')} the watch processed based on this event, in 5 seconds 
             if no other changes occur in the meantime.`);
@@ -273,10 +273,10 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
 
       let onEvent = function (eventName: string) {
         return function (p: string) {
-          log.info(eventName, 'event :', p);
+          log.good(chalk.grey(`${eventName} event for path:`), `${chalk.magenta.bold(`"${p}"`)}`);
           const inRequireCache = require.cache[p];
           delete require.cache[p];
-          if(inRequireCache){
+          if (inRequireCache) {
             log.warning('the following file was in the require cache => ', p);
             log.warning('therefore we will restart the whole watch process.');
             restartProcess();

@@ -26,13 +26,12 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
 
   return function transpile(f: string, transformData: INearestRunAndTransformRet, isTranspile: boolean, $cb: Function) {
 
-    if(isTranspile === false){
+    if (isTranspile === false) {
       return process.nextTick($cb);
     }
 
     const cb = su.once(this, $cb);
-
-    console.log('transformData => ', util.inspect(transformData));
+    log.info('transform data => ', util.inspect(transformData));
 
     let transformPath: string;
 
@@ -115,17 +114,22 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
           stdout: String(stdout).trim(),
           stderr: String(stderr).trim()
         });
-      }, 1000000);
+      }, 100000);
 
       k.once('exit', function (code: number) {
 
-        console.log('transpile has exited with code => ', code);
+        if (code > 0) {
+          log.warn('transpile has exited with code => ', code);
+        }
+        else {
+          log.info('transpile has exited with code => ', code);
+        }
 
         clearTimeout(to);
 
         let err;
         if (code > 0) {
-          console.error(' => There was an error transforming your tests.');
+          log.error(' => There was an error transforming your tests.');
           err = new Error(`transform process at path "${f}" exited with non-zero exit code =>\n${stderr}`);
         }
 
