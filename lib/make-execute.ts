@@ -155,7 +155,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
 
         client.pipe(pt(` [watch-worker-via-daemon] `)).pipe(process.stdout);
 
-        client.on('end', () => {
+        client.once('end', () => {
           if (endOk) {
             cb(null, {
               path: f,
