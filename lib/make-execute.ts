@@ -178,7 +178,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
 
         let extname = path.extname(f);
 
-        if (['.html', '.json', '.xml', '.log', '.txt'].includes(extname)) {
+        if (['.html', '.json', '.xml', '.log', '.txt', '.d.ts','.md'].some(v => String(f).endsWith(v))) {
           log.info(`files with extension '${extname}' are currently ignored by suman-watch.`);
           return process.nextTick(cb, null, {code: -1});
         }
