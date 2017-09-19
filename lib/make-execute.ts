@@ -23,8 +23,12 @@ import {workerPool} from './worker-pool';
 import log from './logging';
 import {IPoolioChildProcess} from "poolio";
 import {ChildProcess} from "child_process";
-
 const bashPool = [];
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+process.stdout.setMaxListeners(80);
+process.stderr.setMaxListeners(80);
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -90,7 +94,7 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
 
     if (runPath) {
 
-      log.info('runPath => ', runPath);
+      log.info(`executable path => '${runPath}'`);
 
       k = cp.spawn('bash', [], {
         detached: false,
@@ -170,9 +174,12 @@ export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRo
       }
       else {
 
-        log.info('file path  => ', f);
+        log.info(`file path  => '${f}'`);
 
-        if (['.html', '.json', '.xml'].includes(path.extname(f))) {
+        let extname = path.extname(f);
+
+        if (['.html', '.json', '.xml', '.log', '.txt'].includes(extname)) {
+          log.info(`files with extension '${extname}' are currently ignored by suman-watch.`);
           return process.nextTick(cb, null, {code: -1});
         }
 
