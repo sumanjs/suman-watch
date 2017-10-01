@@ -1,12 +1,30 @@
+### folders
+node_modules
+.idea
+test
+.tscmultiwatch
+coverage
+.nyc_output
+.github
+
+### files
+.npmignore
+.gitignore
+.dockerignore
+suman.conf.js
+package-lock.json
+yarn.lock
+
+### matching files
 *.sh
 *.log
 *.json
 *.md
 *.txt
 *.ts
+
+
+### negation
 !*.d.ts
-node_modules
-.idea
-test
-.tscmultiwatch
-suman.conf.js
+
+

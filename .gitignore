@@ -1,4 +1,16 @@
-.DS_Store
-*.log
+### folders
 node_modules
 .idea
+
+###  matching files
+*.DS_Store
+*.log
+
+### files
+package-lock.json
+yarn.lock
+
+### negation
+
+
+

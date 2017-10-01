@@ -88,7 +88,6 @@ module.exports = Object.freeze({
     }
   },
 
-
   reporters: {
     'tap': 'suman/reporters/tap'
   },

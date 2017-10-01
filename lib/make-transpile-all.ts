@@ -1,7 +1,7 @@
 'use strict';
 
 // typescript imports
-import {IMapCallback, IMap} from 'suman-utils';
+import {IMapCallback, IMap} from 'suman-types/dts/suman-utils';
 import {AsyncFunction} from '@types/async';
 import {ISumanTranspileData, ISumanWatchOptions} from "../index";
 
@@ -51,13 +51,15 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
             return cb(err);
           }
 
+          console.log('tttt', util.inspect(t));
+
           const uniqueResults = results.filter(function (r, i) {
             return results.indexOf(r) === i;
           });
 
           const k = cp.spawn('bash', [], {
             detached: false,
-            cwd: t.cwd,
+            cwd: t.cwd || process.cwd(),
             env: Object.assign({}, process.env, {
               SUMAN_TEST_PATHS: JSON.stringify(uniqueResults),
               SUMAN_TRANSFORM_ALL_SOURCES: 'yes'

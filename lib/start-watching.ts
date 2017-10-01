@@ -96,7 +96,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
   const projectRoot = su.findProjectRoot(process.cwd());
   const testDir = process.env['TEST_DIR'];
   const testSrcDir = process.env['TEST_SRC_DIR'];
-  const transpileAll = makeTranspileAll(watchOpts, projectRoot);
+  const runTranspileAll = makeTranspileAll(watchOpts, projectRoot);
 
   log.info('testDir => ', testDir);
 
@@ -158,7 +158,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
         })
         .filter(i => i);
 
-        transpileAll(paths, cb);
+        runTranspileAll(paths, cb);
 
       }
     },
