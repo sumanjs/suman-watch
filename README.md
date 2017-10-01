@@ -4,16 +4,16 @@
 
 # About
 Suman watch can run test files on changes, transpile/compile code on changes, or both. By default, suman-watch
-will both transpile and run files. To prevent transpilation, use the `--nt` flag. To prevent running files, 
-use the `--nr` flag. If you use both the `--nr` and `--nt` flags, suman-watch does not have much to do :)
+will both transpile and run files. To prevent transpilation, use the `--nt` flag (no-transpile). To prevent running files, 
+use the `--nr` (no-run) flag. If you use both the `--nr` and `--nt` flags, suman-watch does not have much to do :)
 
 Just like with running suman at the command line, suman-watch uses the @transform.sh and @run.sh files,
 where they exist. Transpilation will happen by default, if a @transform.sh file exists for that file, 
 and the file is in a @src directory, otherwise no transpilation step will occur and the test will only be run.
 In order to transpile/compile, a @transform.sh file must exist. And if a @transform.sh file exists, a
-@run.sh file must also exist, otherwise suman will have no idea how to execute your transpiled tests. Suman
-can make no assumptions, and will make no assumptions. However, a @run.sh file can exist without a @transform.sh file.
-A @run.sh file will be applied to any file below it in the filesystem tree.
+@run.sh file must also exist, otherwise suman will have no idea how to execute your transpiled tests. 
+However, a @run.sh file can exist without a @transform.sh file. 
+The @run.sh and @transform.sh files will be applied to any sibling or child file in the filesystem tree.
 
 
 # Common Usage 

@@ -2,6 +2,7 @@
 'use strict';
 
 //dts
+import {IMap} from "suman-types/dts/suman-utils";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -16,7 +17,7 @@ import cp = require('child_process');
 
 //npm
 import * as async from 'async';
-import su, {IMapCallback, IMap, INearestRunAndTransformRet} from 'suman-utils';
+import * as su from 'suman-utils';
 
 import * as chokidar from 'chokidar';
 import * as chalk from 'chalk';
@@ -28,6 +29,7 @@ import log from './logging';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
 import {makeTranspileAll} from './make-transpile-all';
 import {ISumanWatchPerItem} from "../index";
+
 
 ///////////////////////////////////////////////////////////////
 
@@ -248,9 +250,7 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
         });
 
         log.veryGood('number of files being watched by suman-watch => ', watchCount);
-        cb && cb(null, {
-          watched
-        });
+        cb && cb(null, {watched});
       });
 
       let killAndRestart = function () {

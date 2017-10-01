@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
 var logging_1 = require("./lib/logging");
 exports.run = function (watchOpts, cb) {

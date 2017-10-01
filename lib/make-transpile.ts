@@ -1,7 +1,8 @@
 'use strict';
 
-//typescript imports
-import {ISumanWatchOptions} from "../index";
+//tsc
+import {INearestRunAndTransformRet} from "suman-types/dts/suman-utils";
+import {ISumanWatchOptions} from "./start-watching";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -15,7 +16,7 @@ import * as path from 'path'
 import * as cp from 'child_process'
 
 //npm
-import su, {INearestRunAndTransformRet} from 'suman-utils';
+import * as su from 'suman-utils';
 
 //project
 import log from './logging';
@@ -24,13 +25,12 @@ import log from './logging';
 
 export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoot: string) {
 
-  return function transpile(f: string, transformData: INearestRunAndTransformRet, isTranspile: boolean, $cb: Function) {
+  return function transpile(f: string, transformData: INearestRunAndTransformRet, isTranspile: boolean, cb: Function) {
 
     if (isTranspile === false) {
-      return process.nextTick($cb);
+      return process.nextTick(cb);
     }
 
-    const cb = su.once(this, $cb);
     log.info('transform data => ', util.inspect(transformData));
 
     let transformPath: string;
@@ -43,7 +43,7 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
         const config = require(transformData.config);
         try {
           if (config['@transform']['prevent'] === true) {
-            log.info('we are not transpiling this file because "prevent" is set to true in @config.json.')
+            log.info('we are not transpiling this file because "prevent" is set to true in @config.json.');
             return process.nextTick(cb);
           }
         }
@@ -109,7 +109,10 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
         stderr += d;
       });
 
+      let timedout = false;
+
       const to = setTimeout(function () {
+        timedout = true;
         cb(new Error(`transform process timed out for path "${f}".`), {
           stdout: String(stdout).trim(),
           stderr: String(stderr).trim()
@@ -119,26 +122,28 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
       k.once('exit', function (code: number) {
 
         if (code > 0) {
-          log.warn('transpile has exited with code => ', code);
+          log.warn('transpilation may have failed, the process has exited with code => ', code);
         }
         else {
-          log.info('transpile has exited with code => ', code);
+          log.info('transpilation process appears successful, and has exited with code => ', code);
         }
 
         clearTimeout(to);
 
-        let err;
-        if (code > 0) {
-          log.error(' => There was an error transforming your tests.');
-          err = new Error(`transform process at path "${f}" exited with non-zero exit code =>\n${stderr}`);
-        }
+        if (!timedout) {
+          let err;
+          if (code > 0) {
+            log.error(' => There was an error transforming your tests.');
+            err = new Error(`transform process at path "${f}" exited with non-zero exit code =>\n${stderr}`);
+          }
 
-        cb(err, {
-          code,
-          path: f,
-          stdout: String(stdout).trim(),
-          stderr: String(stderr).trim()
-        });
+          cb(err, {
+            code,
+            path: f,
+            stdout: String(stdout).trim(),
+            stderr: String(stderr).trim()
+          });
+        }
 
       });
 

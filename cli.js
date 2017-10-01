@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-var dashdash = require("dashdash");
-var index = require("./index");
-var residence = require("residence");
 var path = require("path");
+var residence = require("residence");
+var dashdash = require("dashdash");
+var index = require(".");
 var log = require("./lib/logging");
 var projectRoot = residence.findProjectRoot(process.cwd());
 if (!projectRoot) {

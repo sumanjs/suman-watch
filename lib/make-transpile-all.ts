@@ -1,6 +1,6 @@
 'use strict';
 
-// typescript imports
+// tsc
 import {IMapCallback, IMap} from 'suman-types/dts/suman-utils';
 import {AsyncFunction} from '@types/async';
 import {ISumanTranspileData, ISumanWatchOptions} from "./start-watching";
@@ -28,6 +28,8 @@ import log from './logging';
 const cleanStdio = function (stdio: string) {
   return String(stdio).trim().split('\n').map(l => String(l).trim()).filter(i => i).join('\n')
 };
+
+//////////////////////////////////////////////////////////////////////////////////////////
 
 export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, projectRoot: string) {
 
@@ -63,7 +65,7 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
 
           const k = cp.spawn('bash', [], {
             detached: false,
-            cwd: process.cwd(), // t.cwd
+            cwd: projectRoot || process.cwd(), // t.cwd
             env: Object.assign({}, process.env, {
               SUMAN_TEST_PATHS: JSON.stringify(uniqueResults),
               SUMAN_TRANSFORM_ALL_SOURCES: 'yes'

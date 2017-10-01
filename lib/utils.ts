@@ -22,6 +22,7 @@ const sig = ['@run.sh', '@transform.sh', '@config.json'];
 export const getAlwaysIgnore = function () {
 
   return [
+
     '.DS_Store',
     '/.idea/',
     '___jb_old___',
@@ -31,15 +32,16 @@ export const getAlwaysIgnore = function () {
     '\\.log$',
     '/logs/',
     '/@target/',
-    '\.txt$'   ///////////
+    '\.txt$'
+
   ];
 
 };
 
-export const isPathMatchesSig = function(basename: string){
-   return sig.some(function(v: string){
-      return String(basename) === String(v);
-   });
+export const isPathMatchesSig = function (basename: string) {
+  return sig.some(function (v: string) {
+    return String(basename) === String(v);
+  });
 };
 
 export const find = function (getTransformPaths: IMap, cb: AsyncResultArrayCallback<Error, Iterable<any>>) {

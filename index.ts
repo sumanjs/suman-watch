@@ -8,6 +8,8 @@ import log from './lib/logging';
 export interface ISumanWatchPerItem {
   includes: string | Array<string>,
   excludes: string | RegExp | Array<string | RegExp>,
+  include: string | Array<string>,
+  exclude: string | RegExp | Array<string | RegExp>,
   exec: string,
   confOverride: Partial<Object>
 }
