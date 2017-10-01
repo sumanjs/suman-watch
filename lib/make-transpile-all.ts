@@ -3,7 +3,7 @@
 // typescript imports
 import {IMapCallback, IMap} from 'suman-types/dts/suman-utils';
 import {AsyncFunction} from '@types/async';
-import {ISumanTranspileData, ISumanWatchOptions} from "../index";
+import {ISumanTranspileData, ISumanWatchOptions} from "./start-watching";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -18,26 +18,30 @@ import fs = require('fs');
 
 //npm
 import * as async from 'async';
-import su from 'suman-utils';
+import * as su from 'suman-utils';
 
 //project
 import log from './logging';
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
+const cleanStdio = function (stdio: string) {
+  return String(stdio).trim().split('\n').map(l => String(l).trim()).filter(i => i).join('\n')
+};
+
 export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, projectRoot: string) {
 
   return function (transformPaths: Array<ISumanTranspileData>, cb: AsyncResultArrayCallback<Iterable<any>, Error>) {
 
+
+    //TODO: we may need to delete require cache for this file and re-require here
     const sumanConfig = require(path.resolve(projectRoot + '/suman.conf.js'));
 
-    const filtered = transformPaths.filter(function(t){
-       return t.bashFilePath;
+    const filtered = transformPaths.filter(function (t) {
+      return t.bashFilePath;
     });
 
-    async.mapLimit(filtered, 4, function (t: ISumanTranspileData, $cb: Function) {
-
-      const cb = su.once(this, $cb);
+    async.mapLimit(filtered, 4, function (t: ISumanTranspileData, cb: Function) {
 
       su.findApplicablePathsGivenTransform(sumanConfig, t.basePath, function (err: Error, results: Array<string>) {
 
@@ -59,7 +63,7 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
 
           const k = cp.spawn('bash', [], {
             detached: false,
-            cwd: t.cwd || process.cwd(),
+            cwd: process.cwd(), // t.cwd
             env: Object.assign({}, process.env, {
               SUMAN_TEST_PATHS: JSON.stringify(uniqueResults),
               SUMAN_TRANSFORM_ALL_SOURCES: 'yes'
@@ -68,12 +72,15 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
 
           fs.createReadStream(t.bashFilePath).pipe(k.stdin);
 
+          let timedout = false;
+
           const to = setTimeout(function () {
+            timedout = true;
             k.kill('SIGINT');
             cb(new Error(`transform all process timed out for the @transform.sh file at path "${t}".`), {
               path: t,
-              stdout: String(stdout).trim().split('\n').map(l => String(l).trim()).filter(i => i).join('\n'),
-              stderr: String(stderr).trim().split('\n').map(l => String(l).trim()).filter(i => i).join('\n')
+              stdout: cleanStdio(stdout),
+              stderr: cleanStdio(stderr)
             });
           }, 1000000);
 
@@ -97,15 +104,12 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
           // k.stderr.pipe(process.stderr);
 
           k.once('exit', function (code) {
-
             clearTimeout(to);
-
-            cb(null, {
-              path: t,
-              code: code,
-              stdout: String(stdout).trim().split('\n').map(l => String(l).trim()).filter(i => i).join('\n'),
-              stderr: String(stderr).trim().split('\n').map(l => String(l).trim()).filter(i => i).join('\n')
-            });
+            if (!timedout) {
+              cb(null, {
+                path: t, code: code, stdout: cleanStdio(stdout), stderr: cleanStdio(stderr)
+              });
+            }
           });
 
         });

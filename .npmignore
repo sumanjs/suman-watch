@@ -11,6 +11,7 @@ coverage
 .npmignore
 .gitignore
 .dockerignore
+.editorconfig
 suman.conf.js
 package-lock.json
 yarn.lock

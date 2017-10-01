@@ -1,4 +1,9 @@
+'use strict';
+
 import {ISumanWatchOptions} from "./lib/start-watching";
+import log from './lib/logging';
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 export interface ISumanWatchPerItem {
   includes: string | Array<string>,
@@ -6,8 +11,6 @@ export interface ISumanWatchPerItem {
   exec: string,
   confOverride: Partial<Object>
 }
-
-import log from './lib/logging';
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -1,8 +1,19 @@
-import dashdash = require('dashdash');
-import index = require('./index');
-import residence = require('residence');
+'use strict';
+
+//core
 import path = require('path');
+
+//npm
+import residence = require('residence');
+import dashdash = require('dashdash');
+
+//project
+import index = require('.');
 import log = require('./lib/logging');
+
+
+////////////////////////////////////////////////////////////////////////////////
+
 
 const projectRoot = residence.findProjectRoot(process.cwd());
 
