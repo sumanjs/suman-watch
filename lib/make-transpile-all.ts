@@ -74,7 +74,7 @@ export const makeTranspileAll = function (watchOpts: Object, projectRoot: string
 
           let timedout = false;
 
-          const to = setTimeout(function () {
+          let onTimeout = function () {
             timedout = true;
             k.kill('SIGINT');
             cb(new Error(`transform all process timed out for the @transform.sh file at path "${t}".`), {
@@ -82,7 +82,9 @@ export const makeTranspileAll = function (watchOpts: Object, projectRoot: string
               stdout: cleanStdio(stdout),
               stderr: cleanStdio(stderr)
             });
-          }, 1000000);
+          };
+
+          const to = setTimeout(onTimeout, 300000);
 
           k.once('error', function (e) {
             log.error(`spawn error for path => "${t}" =>\n${e.stack || e}`);
@@ -107,12 +109,14 @@ export const makeTranspileAll = function (watchOpts: Object, projectRoot: string
 
             clearTimeout(to);
             if (!timedout) {
+
               cb(null, {
                 path: t,
                 code: code,
                 stdout: cleanStdio(stdout),
                 stderr: cleanStdio(stderr)
               });
+
             }
           });
 

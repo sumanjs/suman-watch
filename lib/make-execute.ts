@@ -19,11 +19,10 @@ import * as su from 'suman-utils';
 import pt from 'prepend-transform';
 
 //project
-import {workerPool} from './worker-pool';
+// import {workerPool} from './worker-pool';
 import log from './logging';
 import {IPoolioChildProcess} from "poolio";
 import {ChildProcess} from "child_process";
-const bashPool = [];
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -99,7 +98,7 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
       k = cp.spawn('bash', [], {
         detached: false,
         cwd: projectRoot,
-        stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
+        stdio: ['pipe', 'pipe', 'pipe'],
         env: Object.assign({}, process.env, {
           SUMAN_PROJECT_ROOT: projectRoot,
           SUMAN_TEST_PATHS: JSON.stringify([f]),
@@ -113,77 +112,11 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
       handleStdioAndExit(k, runPath, null);
 
     }
-    else {
+    else if (String(f).endsWith('.js')) {
 
-      if (String(f).endsWith('.js')) {
+      let noDaemon = function () {
 
-        let noDaemon = function () {
-
-          k = cp.spawn('node', [f], {
-            detached: false,
-            cwd: projectRoot,
-            stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
-            env: Object.assign({}, process.env, {
-              SUMAN_PROJECT_ROOT: projectRoot,
-              SUMAN_CHILD_TEST_PATH: f,
-              SUMAN_TEST_PATHS: JSON.stringify([f]),
-              SUMAN_ALWAYS_INHERIT_STDIO: 'yes'
-            })
-          });
-
-          handleStdioAndExit(k, runPath, f);
-        };
-
-        // if we are using Suman daemon, then we can use this?
-        const client = net.createConnection({port: 9091}, () => {
-          log.good('connected to server!');
-          const cwdDir = path.dirname(f);
-          log.good('cwd-dir => ', cwdDir);
-          client.write(JSON.stringify({pid: -1, cwd: cwdDir, args: [f]}) + '\r\n');
-        });
-
-        client.once('error', function (e) {
-          if (/ECONNREFUSED/.test(e.message)) {
-            process.nextTick(noDaemon);
-          }
-          else {
-            log.error('client connect error => ', e.stack || e);
-            process.nextTick(cb, e);
-          }
-        });
-
-        let endOk = false;
-        client.once('data', function () {
-          endOk = true;
-        });
-
-        client.pipe(pt(` [watch-worker-via-daemon] `)).pipe(process.stdout);
-
-        client.once('end', () => {
-          if (endOk) {
-            cb(null, {
-              path: f,
-              runPath,
-              code: null,
-              stdout: '',
-              stderr: ''
-            });
-          }
-        });
-
-      }
-      else {
-
-        log.info(`file path  => '${f}'`);
-
-        let extname = path.extname(f);
-
-        if (['.html', '.json', '.xml', '.log', '.txt', '.d.ts','.md'].some(v => String(f).endsWith(v))) {
-          log.info(`files with extension '${extname}' are currently ignored by suman-watch.`);
-          return process.nextTick(cb, null, {code: -1});
-        }
-
-        k = cp.spawn(f, [], {
+        k = cp.spawn('node', [f], {
           detached: false,
           cwd: projectRoot,
           stdio: ['ignore', 'pipe', 'pipe'],
@@ -195,15 +128,77 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
           })
         });
 
-        k.once('error', function (e: Error) {
-          log.error(e.stack || e);
-        });
-
         handleStdioAndExit(k, runPath, f);
-      }
+      };
+
+      // if we are using Suman daemon, then we can use this?
+      const client = net.createConnection({port: 9091}, () => {
+        log.good('connected to server!');
+        const cwdDir = path.dirname(f);
+        log.good('cwd-dir => ', cwdDir);
+        client.write(JSON.stringify({pid: -1, cwd: cwdDir, args: [f]}) + '\r\n');
+      });
+
+      client.once('error', function (e) {
+        if (/ECONNREFUSED/.test(e.message)) {
+          process.nextTick(noDaemon);
+        }
+        else {
+          log.error('client connect error => ', e.stack || e);
+          process.nextTick(cb, e);
+        }
+      });
+
+      let endOk = false;
+      client.once('data', function () {
+        endOk = true;
+      });
+
+      client.pipe(pt(` [watch-worker-via-daemon] `)).pipe(process.stdout);
+
+      client.once('end', () => {
+        if (endOk) {
+          cb(null, {
+            path: f,
+            runPath,
+            code: null,
+            stdout: '',
+            stderr: ''
+          });
+        }
+      });
 
     }
+    else {
 
-  };
+      log.info(`file path  => '${f}'`);
+
+      let extname = path.extname(f);
+
+      if (['.html', '.json', '.xml', '.log', '.txt', '.d.ts', '.md'].some(v => String(f).endsWith(v))) {
+        log.info(`files with extension '${extname}' are currently ignored by suman-watch.`);
+        return process.nextTick(cb, null, {code: -1});
+      }
+
+      k = cp.spawn(f, [], {
+        detached: false,
+        cwd: projectRoot,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        env: Object.assign({}, process.env, {
+          SUMAN_PROJECT_ROOT: projectRoot,
+          SUMAN_CHILD_TEST_PATH: f,
+          SUMAN_TEST_PATHS: JSON.stringify([f]),
+          SUMAN_ALWAYS_INHERIT_STDIO: 'yes'
+        })
+      });
+
+      k.once('error', function (e: Error) {
+        log.error(e.stack || e);
+      });
+
+      handleStdioAndExit(k, runPath, f);
+    }
+
+  }
 
 };

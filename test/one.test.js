@@ -7,8 +7,14 @@ const Test = suman.init(module);
 
 Test.create('one', function(it){
 
-  it('fling', t => {
+  it('fling1', t => {
 
+    ////////
+  });
+
+  it('fling2', t => {
+
+    //////////
   });
 
 });

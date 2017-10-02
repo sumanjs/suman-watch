@@ -2,6 +2,7 @@
 
 //dts
 import {ISumanOpts, ISumanConfig} from 'suman-types/dts/global';
+import {IMap} from "suman-types/dts/suman-utils";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -21,9 +22,10 @@ import chalk = require('chalk');
 import * as async from 'async';
 import * as su from 'suman-utils';
 
+
 /////////////////////////////////////////////////////////////////////////////////////////
 
-const sig = ['@run.sh', '@transform.sh', '@config.json'];
+
 
 export const getAlwaysIgnore = function () {
 
@@ -43,6 +45,9 @@ export const getAlwaysIgnore = function () {
   ];
 
 };
+
+
+const sig = ['@run.sh', '@transform.sh', '@config.json', 'suman.conf.js'];
 
 export const isPathMatchesSig = function (basename: string) {
   return sig.some(function (v: string) {

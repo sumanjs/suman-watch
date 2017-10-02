@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 'use strict';
 
 //dts
@@ -19,11 +18,10 @@ import cp = require('child_process');
 //npm
 import * as async from 'async';
 import * as su from 'suman-utils';
-
 import * as chokidar from 'chokidar';
 import * as chalk from 'chalk';
 import {Pool} from 'poolio';
-import pt from 'prepend-transform';
+import {pt} from 'prepend-transform';
 
 //project
 import log from './logging';
@@ -77,7 +75,7 @@ interface IConfigItem {
 const alwaysIgnore = getAlwaysIgnore();
 
 const onSIG = function () {
-  log.info('suman watch is exiting due to SIGTERM/SIGINT.');
+  log.warn('suman watch is exiting due to SIGTERM/SIGINT.');
   process.exit(139);
 };
 
@@ -260,7 +258,7 @@ export const makeRun = function (projectRoot: string, $paths: Array<string>, sum
         let killAndRestart = function () {
           watcher.close();
           k.kill('SIGINT');
-          setImmediate(run, watchOpts);
+          setImmediate(run, null, false, null);
         };
 
         let to: NodeJS.Timer;
