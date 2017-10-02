@@ -111,9 +111,10 @@ export const makeRunChangedTestPath = function (watchOpts: Object, projectRoot: 
             log.warning('suman-watcher implementation warning, exit code was undefined.');
           }
 
-          console.log('\n');
-
           if (false) {
+
+            console.log('\n');
+
             log.info(`your corresponding test process for path ${f}, exited with code ${code}`);
 
             if (code > 0) {

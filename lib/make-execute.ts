@@ -52,13 +52,17 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
         }
       }
       catch (err) {
-        log.error(err.stack || err);
+        log.warn('no run plugin could be found to execute the test.');
       }
     }
 
     if (!runPath) {
       if (runData.run) {
+        log.warn('runPath has been found.');
         runPath = runData.run;
+      }
+      else{
+        log.warn('runPath has not been found.');
       }
     }
 

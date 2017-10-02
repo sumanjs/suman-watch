@@ -111,14 +111,15 @@ export const makeTranspile = function (watchOpts: Object, projectRoot: string) {
       });
 
       let timedout = false;
-
-      const to = setTimeout(function () {
+      let onTimeout = function () {
         timedout = true;
         cb(new Error(`transform process timed out for path "${f}".`), {
           stdout: String(stdout).trim(),
           stderr: String(stderr).trim()
         });
-      }, 100000);
+      };
+
+      const to = setTimeout(onTimeout, 100000);
 
       k.once('exit', function (code: number) {
 
