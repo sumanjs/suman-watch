@@ -1,6 +1,7 @@
 'use strict';
 
-import {ISumanWatchOptions} from "./lib/start-watching";
+//dts
+import {ISumanOpts, ISumanConfig} from 'suman-types/dts/global';
 import log from './lib/logging';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16,16 +17,23 @@ export interface ISumanWatchPerItem {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-export const run = function (watchOpts: Partial<ISumanWatchOptions>, cb?: Function) {
+export const runWatch = function (projectRoot: string, paths: Array<string>,
+                                  sumanConfig: ISumanConfig, sumanOpts: ISumanOpts, cb: Function) {
 
-  if (watchOpts.watchPer) {
-    log.warning('running watchPer');
-    require('./lib/watch-per').run(watchOpts, cb);
+  const {makeRun} = sumanOpts.watch_per ? require('./lib/watch-per') : require('./lib/start-watching');
+
+  {
+    if (sumanOpts.watch_per) {
+      log.info('running watch-per');
+    }
+    else {
+      log.info('Running standard test script watcher.');
+      log.info('When changes are saved to a test script, that test script will be executed.');
+    }
+
   }
-  else {
-    log.info('Running standard test script watcher.');
-    log.info('When changes are saved to a test script, that test script will be executed.');
-    require('./lib/start-watching').run(watchOpts, cb);
-  }
+
+  const run = makeRun(projectRoot, paths, sumanOpts);
+  run(sumanConfig, false, cb);
 
 };

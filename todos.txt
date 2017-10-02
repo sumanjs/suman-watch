@@ -1,15 +1,31 @@
 remove usages of require, so as to avoid caching files that may change
 
+//
+
+ => give user choice as to use bash or zsh or whatever for suman-watch
+
+//
+
 create pool of bash workers beforehand? => can't set env and cwd after the fact?
+
+//
 
 async lib types => https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/types/async/index.d.ts#L112
 
+//
+
 suman --watch x --watch y
+
+//
 
 should not cause problems
 
+//
+
 only if the expected number of watched files in the worker does not match, should
 we throw an error.
+
+//
 
 suman --watch x --exec=""
 suman --watch . --exclude="" --include="" --exec=""
@@ -17,16 +33,30 @@ suman --watch-as-per="zam"
 
 make sure watch path passed by user does not include a directory below the project
 
+//
+
 process.stdin should listen for rs for "restart", and this will restart the watcher.
 process.stdin should listen for rr for "rerun", and this will rerun the most recent test.
+
+//
 
 // compile TS file to node
 https://github.com/TypeStrong/ts-node
 
-// move the transpilation code to suman-utils, so that suman can reference it too?
+//
+
+move the transpilation code to suman-utils, so that suman can reference it too?
+
+//
 
 support hooking into transpilation "hot"/live watch processes, so we don't have to transpile from scratch
 in other words, hook into tsc -w
+
+//
+
+
+// => we don't need to use Poolio, we just need to have one worker on deck, so everytime we kill a worker,
+we start another one, but we use the one on deck.
 
 //
 

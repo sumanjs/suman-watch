@@ -39,12 +39,6 @@ export interface ISumanWatchResult {
   stderr: string
 }
 
-export interface ISumanWatchOptions {
-  paths: Array<string>,
-  noTranspile?: boolean,
-  noRun?: boolean,
-  watchPer?: ISumanWatchPerItem
-}
 
 export interface ISumanTransformResult {
   stdout: string,
@@ -84,7 +78,7 @@ interface IConfigItem {
 const alwaysIgnore = getAlwaysIgnore();
 
 const onSIG = function () {
-  log.info('suman watch is exiting.');
+  log.info('suman watch is exiting due to SIGTERM/SIGINT.');
   process.exit(139);
 };
 
@@ -93,19 +87,17 @@ process.on('SIGTERM', onSIG);
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void {
+export const run = function (projectRoot: string, watchOpts: ISumanWatchOptions, cb?: Function): void {
 
-  const projectRoot = su.findProjectRoot(process.cwd());
   const testDir = process.env['TEST_DIR'];
   const testSrcDir = process.env['TEST_SRC_DIR'];
+
+
+
   const runTranspileAll = makeTranspileAll(watchOpts, projectRoot);
 
   log.info('testDir => ', testDir);
 
-  // we should re-load suman config, in case it has changed, etc.
-  const p = path.resolve(projectRoot + '/suman.conf.js');
-  delete require.cache[p];
-  const sumanConfig = require(p);
 
   async.autoInject({
 
@@ -256,19 +248,16 @@ export const run = function (watchOpts: ISumanWatchOptions, cb?: Function): void
       let killAndRestart = function () {
         watcher.close();
         k.kill('SIGINT');
-        setImmediate(function () {
-          run(watchOpts);
-        });
+        setImmediate(run, watchOpts);
       };
 
       let to: NodeJS.Timer;
 
       let restartProcess = function () {
-
-        log.warning(`we will ${chalk.magenta.bold('refresh')} the watch processed based on this event, in 5 seconds 
+        log.warning(`we will ${chalk.magenta.bold('refresh')} the watch processed based on this event, in 2 seconds 
             if no other changes occur in the meantime.`);
         clearTimeout(to);
-        to = setTimeout(killAndRestart, 8000);
+        to = setTimeout(killAndRestart, 2000);
       };
 
       let onEvent = function (eventName: string) {

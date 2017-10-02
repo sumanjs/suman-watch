@@ -2,6 +2,7 @@
 'use strict';
 
 //dts
+import {ISumanOpts, ISumanConfig} from 'suman-types/dts/global';
 import {ISumanWatchOptions} from "./start-watching";
 
 //polyfills
@@ -36,132 +37,150 @@ const alwaysIgnore = utils.getAlwaysIgnore();
 
 ///////////////////////////////////////////////////////////////////////////////
 
-export const run = function (watchOpts: ISumanWatchOptions, cb?: Function) {
+export const makeRun = function (projectRoot: string, paths: Array<string>, sumanOpts: ISumanOpts) {
 
-  const projectRoot = su.findProjectRoot(process.cwd());
+  return function run($sumanConfig: ISumanConfig, isRunNow: boolean, cb?: Function) {
 
-  // we should re-load suman config, in case it has changed, etc.
-  const p = path.resolve(projectRoot + '/suman.conf.js');
-  delete require.cache[p];
-  const sumanConfig = require(p);
+    // uggh.. here we reload suman.conf.js if the watcher is restarted
+    let {watchObj, sumanConfig} = utils.getWatchObj(projectRoot, sumanOpts, $sumanConfig);
 
-  let watchObj = watchOpts.watchPer;
+    const includesErr = '"{suman.conf.js}.watch.per" entries must have an "includes/include" property ' +
+      'which is a string or array of strings.';
 
-  const includesErr = '"{suman.conf.js}.watch.per" entries must have an "includes/include" property ' +
-    'which is a string or array of strings.';
-
-  assert(
-    Array.isArray(watchObj.include) ||
-    su.isStringWithPositiveLn(watchObj.include) ||
-    Array.isArray(watchObj.includes) ||
-    su.isStringWithPositiveLn(watchObj.includes),
-    includesErr);
-
-  const excludesErr =
-    '"{suman.conf.js}.watch.per" entries may have an "excludes/exclude" property but that property must ' +
-    'be a string or an array of strings..';
-
-  if (watchObj.excludes || watchObj.exclude) {
     assert(
-      Array.isArray(watchObj.exclude) ||
-      su.isStringWithPositiveLn(watchObj.exclude) ||
-      Array.isArray(watchObj.excludes) ||
-      su.isStringWithPositiveLn(watchObj.excludes),
-      excludesErr);
-  }
+      Array.isArray(watchObj.include) ||
+      su.isStringWithPositiveLn(watchObj.include) ||
+      Array.isArray(watchObj.includes) ||
+      su.isStringWithPositiveLn(watchObj.includes),
+      includesErr);
 
-  const includes = _.flattenDeep([watchObj.includes].concat(watchObj.include)).filter((i: string) => i);
+    const excludesErr =
+      '"{suman.conf.js}.watch.per" entries may have an "excludes/exclude" property but that property must ' +
+      'be a string or an array of strings..';
 
-  {
-    includes.forEach(function (v: string) {
-      if (typeof v !== 'string' && !(v instanceof RegExp)) {
-        throw includesErr;
-      }
-    });
-  }
+    if (watchObj.excludes || watchObj.exclude) {
+      assert(
+        Array.isArray(watchObj.exclude) ||
+        su.isStringWithPositiveLn(watchObj.exclude) ||
+        Array.isArray(watchObj.excludes) ||
+        su.isStringWithPositiveLn(watchObj.excludes),
+        excludesErr);
+    }
 
-  const excludes = _.flattenDeep([watchObj.excludes].concat(watchObj.exclude)).filter((i: string) => i);
+    const includes = _.flattenDeep([watchObj.includes].concat(watchObj.include)).filter((i: string) => i);
 
-  {
-    excludes.forEach(function (v: string | RegExp) {
-      if (typeof v !== 'string' && !(v instanceof RegExp)) {
-        throw excludesErr;
-      }
-    });
-  }
+    {
+      // use block scope just for nice formatting indentation lol
+      includes.forEach(function (v: string) {
+        if (typeof v !== 'string' && !(v instanceof RegExp)) {
+          throw includesErr;
+        }
+      });
+    }
 
-  assert(su.isStringWithPositiveLn(watchObj.exec),
-    '"exec" property on {suman.conf.js}.watch.per must be a string with length greater than zero.');
+    const excludes = _.flattenDeep([watchObj.excludes].concat(watchObj.exclude)).filter((i: string) => i);
 
-  const ignored = alwaysIgnore.concat(excludes)
-  .map((v: string | RegExp) => v instanceof RegExp ? v : new RegExp(v));
+    {
+      // use block scope just for nice formatting indentation lol
+      excludes.forEach(function (v: string | RegExp) {
+        if (typeof v !== 'string' && !(v instanceof RegExp)) {
+          throw excludesErr;
+        }
+      });
+    }
 
-  const exec = watchObj.exec;
+    assert(su.isStringWithPositiveLn(watchObj.exec),
+      '"exec" property on {suman.conf.js}.watch.per must be a string with length greater than zero.');
 
-  let watcher = chokidar.watch(includes, {
-    // cwd: projectRoot,
-    persistent: true,
-    ignoreInitial: true,
-    ignored,
-  });
+    const ignored = alwaysIgnore.concat(excludes)
+    .map((v: string | RegExp) => v instanceof RegExp ? v : new RegExp(v));
 
-  watcher.on('error', function (e: Error) {
-    log.error('watcher experienced an error', e.stack || e);
-  });
+    const exec = watchObj.exec;
 
-  watcher.once('ready', function () {
-    log.veryGood('watcher is ready.');
-
-    let watchCount = 0;
-    let watched = watcher.getWatched();
-
-    Object.keys(watched).forEach(function (k) {
-      let ln = watched[k].length;
-      watchCount += ln;
-      const pluralOrNot = ln === 1 ? 'item' : 'items';
-      log.good(`${ln} ${pluralOrNot} watched in this dir => `, k);
+    let watcher = chokidar.watch(includes, {
+      // cwd: projectRoot,
+      persistent: true,
+      ignoreInitial: true,
+      ignored,
     });
 
-    log.veryGood('total number of files being watched by suman-watch => ', watchCount);
-    cb && cb(null, {watched});
-  });
+    watcher.on('error', function (e: Error) {
+      log.error('watcher experienced an error', e.stack || e);
+    });
 
-  let createWorker = function () {
-    // return cp.spawn('bash', [], {
-    //   stdio: ['pipe', process.sdtout, process.stderr]
-    // });
-    const k = cp.spawn('bash');
-    k.stdout.pipe(pt(chalk.black.bold(' [watch-worker] '))).pipe(process.stdout);
-    k.stderr.pipe(pt(chalk.yellow(' [watch-worker] '), {omitWhitespace: true})).pipe(process.stderr);
-    return k;
-  };
+    watcher.once('ready', function () {
+      log.veryGood('watcher is ready.');
+      let watchCount = 0;
+      let watched = watcher.getWatched();
 
-  let first = true;
+      Object.keys(watched).forEach(function (k) {
+        let ln = watched[k].length;
+        watchCount += ln;
+        const pluralOrNot = ln === 1 ? 'item' : 'items';
+        log.good(`${ln} ${pluralOrNot} watched in this dir => `, k);
+      });
 
-  let running = {
-    k: createWorker()
-  };
+      log.veryGood('total number of files being watched by suman-watch => ', watchCount);
+      cb && cb(null, {watched});
+    });
 
-  let startWorker = function () {
-    return running.k = createWorker()
-  };
+    let createWorker = function () {
+      const k = cp.spawn('bash');
+      k.stdout.pipe(pt(chalk.black.bold(' [watch-worker] '))).pipe(process.stdout);
+      k.stderr.pipe(pt(chalk.yellow(' [watch-worker] '), {omitWhitespace: true})).pipe(process.stderr);
+      return k;
+    };
 
-  let onEvent = function (name: string) {
-    return function (p: string) {
-      log.good(name, 'event => file path => ', p);
-      if(!first){
-        running.k.kill();
-        startWorker();
-      }
-      first = false;
+    let running = {
+      k: createWorker()
+    };
+
+    let startWorker = function () {
+      return running.k = createWorker()
+    };
+
+    let restartWatcher = function () {
+      log.warn('restarting watch-per process.');
+      watcher.close();
+      watcher.removeAllListeners(); // just in case...
+      setImmediate(run, null, true, null);
+    };
+
+    let executeExecString = function () {
       log.good(`now running '${exec}'.`);
       running.k.stdin.write('\n' + exec + '\n');
       running.k.stdin.end();
-    }
-  };
+    };
 
-  watcher.on('change', onEvent('change'));
-  watcher.on('add', onEvent('add'));
-  watcher.on('unlink', onEvent('unlink'));
+    if (isRunNow) {
+      executeExecString();
+    }
+
+    watcher.on('change', function (p: string) {
+      log.good('change event, file path => ', p);
+
+      running.k.kill('SIGKILL');
+
+      if (path.basename(p) === 'suman.conf.js') {
+        restartWatcher();
+      }
+      else {
+        startWorker();
+        executeExecString();
+      }
+
+    });
+
+    let addOrUnlinkTo: any;
+    // we throttle this by 1 second to prevent overdoing things
+    let onAddOrUnlink = function (p: string) {
+      clearTimeout(addOrUnlinkTo);
+      addOrUnlinkTo = setTimeout(restartWatcher, 1000);
+    };
+
+    watcher.on('add', onAddOrUnlink);
+    watcher.on('unlink', onAddOrUnlink);
+
+  };
 
 };

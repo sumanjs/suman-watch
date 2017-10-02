@@ -1,14 +1,7 @@
-import { ISumanWatchPerItem } from "../index";
 export interface ISumanWatchResult {
     code: number;
     stdout: string;
     stderr: string;
-}
-export interface ISumanWatchOptions {
-    paths: Array<string>;
-    noTranspile?: boolean;
-    noRun?: boolean;
-    watchPer?: ISumanWatchPerItem;
 }
 export interface ISumanTransformResult {
     stdout: string;
@@ -21,4 +14,4 @@ export interface ISumanTranspileData {
     basePath: string;
     bashFilePath: string;
 }
-export declare const run: (watchOpts: ISumanWatchOptions, cb?: Function) => void;
+export declare const run: (projectRoot: string, watchOpts: any, cb?: Function) => void;
