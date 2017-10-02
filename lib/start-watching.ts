@@ -26,7 +26,7 @@ import {Pool} from 'poolio';
 import log from './logging';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
 import {makeTranspileAll} from './make-transpile-all';
-import {ISumanWatchPerItem} from "../index";
+import {makeRunChangedTestPath} from './run-changed-test-path';
 
 ///////////////////////////////////////////////////////////////
 
@@ -104,6 +104,8 @@ export const makeRun = function (projectRoot: string, $paths: Array<string>, sum
       paths: $paths,
       noTranspile: sumanOpts.no_transpile
     };
+
+    const runChangedTestPaths = makeRunChangedTestPath(watchOpts, projectRoot);
 
     async.autoInject({
 
@@ -273,7 +275,7 @@ export const makeRun = function (projectRoot: string, $paths: Array<string>, sum
               restartProcess();
             }
             else {
-
+              runChangedTestPaths(p);
             }
           };
         };

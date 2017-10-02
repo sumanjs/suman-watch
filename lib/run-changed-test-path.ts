@@ -24,17 +24,12 @@ import log from './logging';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-export const makeRunChangedTestPath = function (projectRoot: string) {
+export const makeRunChangedTestPath = function (watchOpts: Object, projectRoot: string) {
 
   const transpile = makeTranspile(watchOpts, projectRoot);
   const execute = makeExecute(watchOpts, projectRoot);
 
   return function (f: string) {
-
-    if (isPathMatchesSig(path.basename(f))) {
-      // in this case, we are going to restart this process, so let's just return here
-      return;
-    }
 
     let dn = path.basename(path.dirname(f));
     const canonicalDirname = String('/' + dn + '/').replace(/\/+/g, '/');
@@ -58,11 +53,6 @@ export const makeRunChangedTestPath = function (projectRoot: string) {
         throw new Error(`'suman-watch' implementation error - watched paths must be absolute -> \n\t "${originalFile}"`);
       }
     }
-
-    // clear out the cache for this file, because it has changed!
-    delete require.cache[f];
-
-    log.info('file change event for path => ', f);
 
     su.findNearestRunAndTransform(projectRoot, f, function (err: Error, ret: INearestRunAndTransformRet) {
 
@@ -93,7 +83,7 @@ export const makeRunChangedTestPath = function (projectRoot: string) {
       }
 
       if (!matched) {
-        log.error('file will not be transpiled.');
+        log.warn('file will not be transpiled.');
       }
 
       transpile(f, ret, matched, function (err: Error) {
@@ -123,15 +113,17 @@ export const makeRunChangedTestPath = function (projectRoot: string) {
 
           console.log('\n');
 
-          log.info(`your corresponding test process for path ${f}, exited with code ${code}`);
+          if (false) {
+            log.info(`your corresponding test process for path ${f}, exited with code ${code}`);
 
-          if (code > 0) {
-            log.error(`there was an error executing your test with path ${f}, because the exit code was greater than 0.`);
-          }
+            if (code > 0) {
+              log.error(`there was an error executing your test with path ${f}, because the exit code was greater than 0.`);
+            }
 
-          if (stderr) {
-            log.warning(`the stderr for path ${f}, is as follows =>\n${chalk.yellow(stderr)}.`);
-            console.log('\n');
+            if (stderr) {
+              log.warning(`the stderr for path ${f}, is as follows =>\n${chalk.yellow(stderr)}.`);
+              console.log('\n');
+            }
           }
 
         });

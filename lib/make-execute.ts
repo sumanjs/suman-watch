@@ -66,14 +66,14 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
 
       let stdout = '';
       k.stdout.setEncoding('utf8');
-      k.stdout.pipe(pt(chalk.black.bold(' [watch-worker-exec] '))).pipe(process.stdout);
+      k.stdout.pipe(pt(chalk.grey(' [watch-worker-exec] '))).pipe(process.stdout);
       k.stdout.on('data', function (d: string) {
         stdout += d;
       });
 
       let stderr = '';
       k.stderr.setEncoding('utf8');
-      k.stderr.pipe(pt(chalk.yellow(' [watch-worker-exec] '), {omitWhitespace: true})).pipe(process.stderr);
+      k.stderr.pipe(pt(chalk.yellow.bold(' [watch-worker-exec] '), {omitWhitespace: true})).pipe(process.stderr);
       k.stderr.on('data', function (d: string) {
         stderr += d;
       });
