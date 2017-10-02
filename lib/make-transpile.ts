@@ -16,6 +16,8 @@ import * as cp from 'child_process'
 
 //npm
 import * as su from 'suman-utils';
+import {pt} from 'prepend-transform';
+import * as chalk from 'chalk';
 
 //project
 import log from './logging';
@@ -96,14 +98,14 @@ export const makeTranspile = function (watchOpts: Object, projectRoot: string) {
 
       let stdout = '';
       k.stdout.setEncoding('utf8');
-      k.stdout.pipe(process.stdout);
+      k.stdout.pipe(pt(chalk.black.bold(' [watch-worker-transform] '))).pipe(process.stdout);
       k.stdout.on('data', function (d: string) {
         stdout += d;
       });
 
       let stderr = '';
       k.stderr.setEncoding('utf8');
-      k.stderr.pipe(process.stderr);
+      k.stderr.pipe(pt(chalk.yellow(' [watch-worker-transform] '), {omitWhitespace: true})).pipe(process.stderr);
       k.stderr.on('data', function (d: string) {
         stderr += d;
       });

@@ -21,7 +21,6 @@ import * as su from 'suman-utils';
 import * as chokidar from 'chokidar';
 import * as chalk from 'chalk';
 import {Pool} from 'poolio';
-import {pt} from 'prepend-transform';
 
 //project
 import log from './logging';
@@ -83,8 +82,6 @@ process.on('SIGINT', onSIG);
 process.on('SIGTERM', onSIG);
 
 //////////////////////////////////////////////////////////////////////////////////////
-
-console.log('there is a baby');
 
 export const makeRun = function (projectRoot: string, $paths: Array<string>, sumanOpts: ISumanOpts) {
 
@@ -216,22 +213,6 @@ export const makeRun = function (projectRoot: string, $paths: Array<string>, sum
           return '^' + path.dirname(item.path) + '/(.*\/)?' + (String(item.data['@target']['marker']).replace(/^\/+/, ''));
         });
 
-        const startScript = path.resolve(__dirname + '/start.js');
-
-        const k = cp.spawn(startScript, [], {
-          detached: false,
-          cwd: projectRoot,
-          stdio: ['pipe', 'pipe', 'pipe', 'ipc'],
-          env: Object.assign({}, process.env, {
-            SUMAN_TOTAL_IGNORED: JSON.stringify(moreIgnored),
-            SUMAN_PROJECT_ROOT: projectRoot,
-            SUMAN_WATCH_OPTS: JSON.stringify(watchOpts)
-          })
-        });
-
-        k.stdout.pipe(pt(chalk.black.bold(' [watch-worker] '))).pipe(process.stdout);
-        k.stderr.pipe(pt(chalk.yellow(' [watch-worker] '), {omitWhitespace: true})).pipe(process.stderr);
-
         let watcher = chokidar.watch(testDir, {
           // cwd: projectRoot,
           persistent: true,
@@ -257,9 +238,13 @@ export const makeRun = function (projectRoot: string, $paths: Array<string>, sum
           cb && cb(null, {watched});
         });
 
+        let running = {
+          k: null as any
+        };
+
         let killAndRestart = function () {
           watcher.close();
-          k.kill('SIGINT');
+          running.k && running.k.kill('SIGKILL');
           setImmediate(run, null, false, null);
         };
 
@@ -286,6 +271,9 @@ export const makeRun = function (projectRoot: string, $paths: Array<string>, sum
               log.warning('the following file was a "signifcant" file => ', p);
               log.warning('therefore we will restart the whole watch process.');
               restartProcess();
+            }
+            else {
+
             }
           };
         };

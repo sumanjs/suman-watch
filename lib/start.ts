@@ -23,7 +23,6 @@ import {makeExecute} from './make-execute';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
 import log from './logging';
 
-
 /////////////////////////////////////////////////////////////////////
 
 const testDir = process.env['TEST_DIR'];
@@ -150,15 +149,14 @@ watcher.on('change', function (f: string) {
           return;
         }
 
-
         const {stdout, stderr, code} = result;
 
-        if(code === -1){
+        if (code === -1) {
           // the file was not run, maybe it was an .html or .json file or .xml file, etc.
           return;
         }
 
-        if(code === undefined){
+        if (code === undefined) {
           log.warning('suman-watcher implementation warning, exit code was undefined.');
         }
 

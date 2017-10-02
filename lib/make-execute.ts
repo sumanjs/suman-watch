@@ -16,13 +16,15 @@ import net = require('net');
 
 //npm
 import * as su from 'suman-utils';
-import pt from 'prepend-transform';
+import {pt} from 'prepend-transform';
+import * as chalk from 'chalk';
 
 //project
 // import {workerPool} from './worker-pool';
 import log from './logging';
 import {IPoolioChildProcess} from "poolio";
 import {ChildProcess} from "child_process";
+
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -64,14 +66,14 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
 
       let stdout = '';
       k.stdout.setEncoding('utf8');
-      k.stdout.pipe(process.stdout);
+      k.stdout.pipe(pt(chalk.black.bold(' [watch-worker-exec] '))).pipe(process.stdout);
       k.stdout.on('data', function (d: string) {
         stdout += d;
       });
 
       let stderr = '';
       k.stderr.setEncoding('utf8');
-      k.stderr.pipe(process.stderr);
+      k.stderr.pipe(pt(chalk.yellow(' [watch-worker-exec] '), {omitWhitespace: true})).pipe(process.stderr);
       k.stderr.on('data', function (d: string) {
         stderr += d;
       });
