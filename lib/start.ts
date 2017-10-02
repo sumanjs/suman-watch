@@ -3,6 +3,7 @@
 
 //dts
 import {ISumanWatchResult} from "./start-watching";
+import {INearestRunAndTransformRet} from "suman-types/dts/suman-utils";
 
 //core
 import util = require('util');
@@ -12,7 +13,7 @@ import fs = require('fs');
 import cp = require('child_process');
 
 //npm
-import su, {IMap, INearestRunAndTransformRet} from 'suman-utils';
+import * as su from 'suman-utils';
 import * as chokidar from 'chokidar';
 import * as chalk from 'chalk';
 
@@ -21,6 +22,7 @@ import {makeTranspile} from './make-transpile';
 import {makeExecute} from './make-execute';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
 import log from './logging';
+
 
 /////////////////////////////////////////////////////////////////////
 
@@ -44,6 +46,7 @@ process.once('exit', function () {
 
 process.once('SIGINT', function () {
   watcher.once('close', function () {
+    console.log('watch is closed due to SIGINT event.');
     process.exit(0);
   });
   watcher.close();

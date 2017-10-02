@@ -2,7 +2,6 @@
 
 //tsc
 import {INearestRunAndTransformRet} from "suman-types/dts/suman-utils";
-import {ISumanWatchOptions} from "./start-watching";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -23,7 +22,7 @@ import log from './logging';
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoot: string) {
+export const makeTranspile = function (watchOpts: Object, projectRoot: string) {
 
   return function transpile(f: string, transformData: INearestRunAndTransformRet, isTranspile: boolean, cb: Function) {
 
@@ -125,7 +124,7 @@ export const makeTranspile = function (watchOpts: ISumanWatchOptions, projectRoo
           log.warn('transpilation may have failed, the process has exited with code => ', code);
         }
         else {
-          log.info('transpilation process appears successful, and has exited with code => ', code);
+          log.info('transpilation process appears to be successful, and has exited with code => ', code);
         }
 
         clearTimeout(to);

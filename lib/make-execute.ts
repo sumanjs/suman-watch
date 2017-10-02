@@ -1,6 +1,6 @@
 'use strict';
 //dts
-import {ISumanWatchOptions} from "./start-watching";
+import {INearestRunAndTransformRet} from "suman-types/dts/suman-utils";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -15,7 +15,7 @@ import fs = require('fs');
 import net = require('net');
 
 //npm
-import su, {INearestRunAndTransformRet} from 'suman-utils';
+import * as su from 'suman-utils';
 import pt from 'prepend-transform';
 
 //project
@@ -32,7 +32,7 @@ process.stderr.setMaxListeners(80);
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-export const makeExecute = function (watchOptions: ISumanWatchOptions, projectRoot: string) {
+export const makeExecute = function (watchOptions: Object, projectRoot: string) {
 
   return function (f: string, runData: INearestRunAndTransformRet, $cb: Function) {
 

@@ -3,7 +3,6 @@
 
 //dts
 import {ISumanOpts, ISumanConfig} from 'suman-types/dts/global';
-import {ISumanWatchOptions} from "./start-watching";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -29,10 +28,6 @@ import pt from 'prepend-transform';
 
 //project
 import utils from './utils';
-
-///////////////////////////////////////////////////////////////////////////////
-
-let callable = true;
 const alwaysIgnore = utils.getAlwaysIgnore();
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -67,7 +62,8 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
         excludesErr);
     }
 
-    const includes = _.flattenDeep([watchObj.includes].concat(watchObj.include)).filter((i: string) => i);
+    const _includes = [watchObj.includes].concat(watchObj.include);
+    const includes = _.flattenDeep(_includes).filter((i: string) => i);
 
     {
       // use block scope just for nice formatting indentation lol
@@ -78,7 +74,8 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
       });
     }
 
-    const excludes = _.flattenDeep([watchObj.excludes].concat(watchObj.exclude)).filter((i: string) => i);
+    const _excludes = [watchObj.excludes].concat(watchObj.exclude);
+    const excludes = _.flattenDeep(_excludes).filter((i: string) => i);
 
     {
       // use block scope just for nice formatting indentation lol
@@ -105,7 +102,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     });
 
     watcher.on('error', function (e: Error) {
-      log.error('watcher experienced an error', e.stack || e);
+      log.error('suman-watch watcher experienced an error', e.stack || e);
     });
 
     watcher.once('ready', function () {
@@ -156,10 +153,17 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
       executeExecString();
     }
 
+    let first = true;
+
     watcher.on('change', function (p: string) {
       log.good('change event, file path => ', p);
 
-      running.k.kill('SIGKILL');
+      if (first) {
+        first = false;
+      }
+      else {
+        running.k.kill('SIGKILL');
+      }
 
       if (path.basename(p) === 'suman.conf.js') {
         restartWatcher();

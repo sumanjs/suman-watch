@@ -3,7 +3,7 @@
 // tsc
 import {IMapCallback, IMap} from 'suman-types/dts/suman-utils';
 import {AsyncFunction} from '@types/async';
-import {ISumanTranspileData, ISumanWatchOptions} from "./start-watching";
+import {ISumanTranspileData} from "./start-watching";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -31,12 +31,10 @@ const cleanStdio = function (stdio: string) {
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, projectRoot: string) {
+export const makeTranspileAll = function (watchOpts: Object, projectRoot: string) {
 
-  return function (transformPaths: Array<ISumanTranspileData>, cb: AsyncResultArrayCallback<Iterable<any>, Error>) {
+  return function (transformPaths: Array<ISumanTranspileData>, cb: any) {
 
-
-    //TODO: we may need to delete require cache for this file and re-require here
     const sumanConfig = require(path.resolve(projectRoot + '/suman.conf.js'));
 
     const filtered = transformPaths.filter(function (t) {
@@ -106,10 +104,14 @@ export const makeTranspileAll = function (watchOpts: ISumanWatchOptions, project
           // k.stderr.pipe(process.stderr);
 
           k.once('exit', function (code) {
+
             clearTimeout(to);
             if (!timedout) {
               cb(null, {
-                path: t, code: code, stdout: cleanStdio(stdout), stderr: cleanStdio(stderr)
+                path: t,
+                code: code,
+                stdout: cleanStdio(stdout),
+                stderr: cleanStdio(stderr)
               });
             }
           });

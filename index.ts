@@ -12,7 +12,7 @@ export interface ISumanWatchPerItem {
   include: string | Array<string>,
   exclude: string | RegExp | Array<string | RegExp>,
   exec: string,
-  confOverride: Partial<Object>
+  confOverride: Partial<ISumanConfig>
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
