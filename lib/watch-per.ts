@@ -126,8 +126,8 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
            SUMAN_WATCH_TEST_RUN: 'yes'
          })
       });
-      k.stdout.pipe(pt(chalk.black.bold(' [watch-worker] '))).pipe(process.stdout);
-      k.stderr.pipe(pt(chalk.yellow(' [watch-worker] '), {omitWhitespace: true})).pipe(process.stderr);
+      k.stdout.pipe(pt(chalk.grey(' [watch-worker] '))).pipe(process.stdout);
+      k.stderr.pipe(pt(chalk.yellow.bold(' [watch-worker] '), {omitWhitespace: true})).pipe(process.stderr);
       return k;
     };
 
@@ -138,6 +138,22 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     let startWorker = function () {
       return running.k = createWorker()
     };
+
+    process.stdin.on('data', function onData(d: string){
+      if(String(d).trim() === 'rr'){
+        log.info('re-running test execution.');
+        startWorker();
+        executeExecString();
+      }
+      else if(String(d).trim() === 'rs'){
+        log.info('restarting watch-per process.');
+        process.stdin.removeListener('data', onData);
+        restartWatcher();
+      }
+      else{
+        log.info('stdin command not recognized.');
+      }
+    });
 
     let restartWatcher = function () {
       log.warn('restarting watch-per process.');
@@ -151,6 +167,8 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
       running.k.stdin.write('\n' + exec + '\n');
       running.k.stdin.end();
     };
+
+
 
     if (isRunNow) {
       executeExecString();

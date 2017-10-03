@@ -33,6 +33,7 @@ export const runWatch = function (projectRoot: string, paths: Array<string>,
 
   }
 
+  process.stdin.setEncoding('utf8').resume();
   const run = makeRun(projectRoot, paths, sumanOpts);
   run(sumanConfig, false, cb);
 

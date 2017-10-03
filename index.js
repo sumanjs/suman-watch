@@ -12,6 +12,7 @@ exports.runWatch = function (projectRoot, paths, sumanConfig, sumanOpts, cb) {
             logging_1.default.info('When changes are saved to a test script, that test script will be executed.');
         }
     }
+    process.stdin.setEncoding('utf8').resume();
     var run = makeRun(projectRoot, paths, sumanOpts);
     run(sumanConfig, false, cb);
 };
