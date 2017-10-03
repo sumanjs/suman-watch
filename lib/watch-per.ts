@@ -121,7 +121,11 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     });
 
     let createWorker = function () {
-      const k = cp.spawn('bash');
+      const k = cp.spawn('bash', [], {
+         env: Object.assign({}, process.env, {
+           SUMAN_WATCH_TEST_RUN: 'yes'
+         })
+      });
       k.stdout.pipe(pt(chalk.black.bold(' [watch-worker] '))).pipe(process.stdout);
       k.stderr.pipe(pt(chalk.yellow(' [watch-worker] '), {omitWhitespace: true})).pipe(process.stderr);
       return k;

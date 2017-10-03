@@ -110,6 +110,7 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
           SUMAN_TEST_PATHS: JSON.stringify([f]),
           SUMAN_ALWAYS_INHERIT_STDIO: 'yes',
           SUMAN_CHILD_TEST_PATH: f,
+          SUMAN_WATCH_TEST_RUN: 'yes'
         })
       });
 
@@ -130,7 +131,8 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
             SUMAN_PROJECT_ROOT: projectRoot,
             SUMAN_CHILD_TEST_PATH: f,
             SUMAN_TEST_PATHS: JSON.stringify([f]),
-            SUMAN_ALWAYS_INHERIT_STDIO: 'yes'
+            SUMAN_ALWAYS_INHERIT_STDIO: 'yes',
+            SUMAN_WATCH_TEST_RUN: 'yes'
           })
         });
 
@@ -194,7 +196,8 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
           SUMAN_PROJECT_ROOT: projectRoot,
           SUMAN_CHILD_TEST_PATH: f,
           SUMAN_TEST_PATHS: JSON.stringify([f]),
-          SUMAN_ALWAYS_INHERIT_STDIO: 'yes'
+          SUMAN_ALWAYS_INHERIT_STDIO: 'yes',
+          SUMAN_WATCH_TEST_RUN: 'yes'
         })
       });
 
