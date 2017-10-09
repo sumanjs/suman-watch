@@ -1,4 +1,4 @@
-
+'use strict';
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');

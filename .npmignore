@@ -13,7 +13,6 @@ coverage
 .dockerignore
 .editorconfig
 suman.conf.js
-package-lock.json
 yarn.lock
 
 ### matching files
@@ -23,6 +22,7 @@ yarn.lock
 *.md
 *.txt
 *.ts
+*.yml
 
 
 ### negation
