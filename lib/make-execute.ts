@@ -21,9 +21,7 @@ import {pt} from 'prepend-transform';
 import * as chalk from 'chalk';
 
 //project
-// import {workerPool} from './worker-pool';
-import log from './logging';
-import {IPoolioChildProcess} from "poolio";
+import {log} from './logging';
 import {ChildProcess} from "child_process";
 
 
@@ -53,17 +51,17 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
         }
       }
       catch (err) {
-        log.warn('no run plugin could be found to execute the test.');
+        log.warning('no run plugin could be found to execute the test.');
       }
     }
 
     if (!runPath) {
       if (runData.run) {
-        log.warn('runPath has been found.');
+        log.warning('runPath has been found.');
         runPath = runData.run;
       }
       else{
-        log.warn('runPath has not been found.');
+        log.warning('runPath has not been found.');
       }
     }
 

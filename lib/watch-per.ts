@@ -18,7 +18,7 @@ import cp = require('child_process');
 
 //npm
 import * as _ from 'lodash';
-import log from './logging';
+import {log} from './logging';
 import * as su from 'suman-utils';
 import * as chokidar from 'chokidar';
 import * as chalk from 'chalk';
@@ -156,7 +156,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     });
 
     let restartWatcher = function () {
-      log.warn('restarting watch-per process.');
+      log.warning('restarting watch-per process.');
       watcher.close();
       watcher.removeAllListeners(); // just in case...
       setImmediate(run, null, true, null);

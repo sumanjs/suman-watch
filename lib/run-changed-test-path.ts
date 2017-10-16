@@ -20,7 +20,7 @@ import * as chalk from 'chalk';
 import {makeTranspile} from './make-transpile';
 import {makeExecute} from './make-execute';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
-import log from './logging';
+import {log} from './logging';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -83,7 +83,7 @@ export const makeRunChangedTestPath = function (watchOpts: Object, projectRoot: 
       }
 
       if (!matched) {
-        log.warn('file will not be transpiled.');
+        log.warning('file will not be transpiled.');
       }
 
       transpile(f, ret, matched, function (err: Error) {

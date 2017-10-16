@@ -13,7 +13,7 @@ import fs = require('fs');
 import cp = require('child_process');
 
 //npm
-import * as su from 'suman-utils';
+import su = require('suman-utils');
 import * as chokidar from 'chokidar';
 import * as chalk from 'chalk';
 
@@ -21,7 +21,7 @@ import * as chalk from 'chalk';
 import {makeTranspile} from './make-transpile';
 import {makeExecute} from './make-execute';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
-import log from './logging';
+import {log} from './logging';
 
 /////////////////////////////////////////////////////////////////////
 

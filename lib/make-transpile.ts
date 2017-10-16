@@ -20,7 +20,7 @@ import {pt} from 'prepend-transform';
 import * as chalk from 'chalk';
 
 //project
-import log from './logging';
+import {log} from './logging';
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -124,7 +124,7 @@ export const makeTranspile = function (watchOpts: Object, projectRoot: string) {
       k.once('exit', function (code: number) {
 
         if (code > 0) {
-          log.warn('transpilation may have failed, the process has exited with code => ', code);
+          log.warning('transpilation may have failed, the process has exited with code => ', code);
         }
         else {
           log.info('transpilation process appears to be successful, and has exited with code => ', code);

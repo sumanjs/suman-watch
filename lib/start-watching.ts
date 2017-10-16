@@ -23,7 +23,7 @@ import * as chalk from 'chalk';
 import {Pool} from 'poolio';
 
 //project
-import log from './logging';
+import {log} from './logging';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
 import {makeTranspileAll} from './make-transpile-all';
 import {makeRunChangedTestPath} from './run-changed-test-path';
@@ -74,7 +74,7 @@ interface IConfigItem {
 const alwaysIgnore = getAlwaysIgnore();
 
 const onSIG = function () {
-  log.warn('suman watch is exiting due to SIGTERM/SIGINT.');
+  log.warning('suman watch is exiting due to SIGTERM/SIGINT.');
   process.exit(139);
 };
 
@@ -92,11 +92,11 @@ export const makeRun = function (projectRoot: string, $paths: Array<string>, sum
 
     if (!sumanConfig) {
       const p = path.resolve(projectRoot + '/suman.conf.js');
-      log.warn(`new suman.conf.js path => ${p}`);
+      log.warning(`new suman.conf.js path => ${p}`);
       delete require.cache[p];
-      log.warn(`deleted suman.conf.js cache`);
+      log.warning(`deleted suman.conf.js cache`);
       sumanConfig = require(p);
-      log.warn(`re-required suman.conf.js file.`);
+      log.warning(`re-required suman.conf.js file.`);
     }
 
     const watchOpts = {

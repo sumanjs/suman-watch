@@ -9,7 +9,7 @@ import path = require('path');
 
 //npm
 import {Pool} from "poolio";
-import log from './logging';
+import {log} from './logging';
 
 /////////////////////////////////////////////////////////////////////
 

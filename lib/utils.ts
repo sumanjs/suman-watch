@@ -17,15 +17,12 @@ import fs = require('fs');
 import * as stream from 'stream';
 
 //npm
-import log from './logging';
+import {log} from './logging';
 import chalk = require('chalk');
 import * as async from 'async';
 import * as su from 'suman-utils';
 
-
 /////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 export const getAlwaysIgnore = function () {
 
@@ -46,7 +43,6 @@ export const getAlwaysIgnore = function () {
 
 };
 
-
 const sig = ['@run.sh', '@transform.sh', '@config.json', 'suman.conf.js'];
 
 export const isPathMatchesSig = function (basename: string) {
@@ -60,11 +56,11 @@ export const getWatchObj = function (projectRoot: string, sumanOpts: ISumanOpts,
   if (!sumanConfig) {
     // we should re-load suman config, in case it has changed, etc.
     const p = path.resolve(projectRoot + '/suman.conf.js');
-    log.warn(`new suman.conf.js path => ${p}`);
+    log.warning(`new suman.conf.js path => ${p}`);
     delete require.cache[p];
-    log.warn(`deleted suman.conf.js cache`);
+    log.warning(`deleted suman.conf.js cache`);
     sumanConfig = require(p);
-    log.warn(`re-required suman.conf.js file.`);
+    log.warning(`re-required suman.conf.js file.`);
   }
 
   let watchObj = null;
@@ -117,9 +113,6 @@ export const find = function (getTransformPaths: IMap, cb: AsyncResultArrayCallb
   }, cb)
 
 };
-
-
-
 
 const $exports = module.exports;
 export default $exports;
