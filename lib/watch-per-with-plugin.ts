@@ -68,6 +68,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
           SUMAN_WATCH_TEST_RUN: 'yes'
         })
       });
+      cb && k.once('error', cb);
       k.stdout.pipe(pt(chalk.grey(` [${name}-worker] `))).pipe(process.stdout);
       k.stderr.pipe(pt(chalk.yellow.bold(` [${name}-worker] `), {omitWhitespace: true})).pipe(process.stderr);
       return k;
@@ -122,7 +123,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
       setTimeout(function () {
         watcher.k.kill('SIGKILL');
       }, 2000);
-      setImmediate(run, null, true, null);
+      setImmediate(run, null, false, null);
     };
 
     let runNewTestProcess = function () {
@@ -141,6 +142,8 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     };
 
     watcher.k.stdout.on('data', function (p: string) {
+
+      cb && cb(null);
 
       watcherStdio.stdout += String(p);
 
