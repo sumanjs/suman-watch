@@ -6,6 +6,7 @@ test
 coverage
 .nyc_output
 .github
+scripts
 
 ### files
 .npmignore

@@ -55,9 +55,8 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     const name = plugin.name || 'unknown-watch-plugin';
     const stdoutStartTranspileRegex = plugin.stdoutStartTranspileRegex;
     const stdoutEndTranspileRegex = plugin.stdoutEndTranspileRegex;
-
-    const exec = watchObj.exec;
-    const pluginExec = plugin.exec;
+    const exec = watchObj.exec;  // the string representing the suman test command
+    const pluginExec = plugin.exec;  // the string representing the watch process command
     assert(su.isStringWithPositiveLn(pluginExec), '"exec" property on plugin value must be a string with length greater than zero.');
     assert(su.isStringWithPositiveLn(exec), '"exec" property on watch object value must be a string with length greater than zero.');
     assert(stdoutStartTranspileRegex, '"stdoutStartTranspileRegex" property needs to be defined as a String or RegExp.');
