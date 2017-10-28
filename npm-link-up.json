@@ -18,6 +18,7 @@
     "suman-browser-polyfills",
     "suman-types",
 
+    "suman-watch-plugins",
     "suman-transform-plugins",
     "suman-run-plugins"
   ]

@@ -38,7 +38,10 @@
     "prepend-transform": "latest",
     "residence": "latest",
     "suman-browser-polyfills": "latest",
-    "suman-utils": "latest"
+    "suman-run-plugins": "latest",
+    "suman-transform-plugins": "latest",
+    "suman-utils": "latest",
+    "suman-watch-plugins": "latest"
   },
   "devDependencies": {
     "@types/async": "^2.0.40",

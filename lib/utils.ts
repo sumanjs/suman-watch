@@ -3,6 +3,7 @@
 //dts
 import {ISumanOpts, ISumanConfig} from 'suman-types/dts/global';
 import {IMap} from "suman-types/dts/suman-utils";
+import {AsyncResultArrayCallback} from 'async';
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');

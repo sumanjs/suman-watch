@@ -38,15 +38,18 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     // uggh.. here we reload suman.conf.js if the watcher is restarted
     let {watchObj, sumanConfig} = utils.getWatchObj(projectRoot, sumanOpts, $sumanConfig);
 
+    if(watchObj.plugin){
+
+    }
+
     const includesErr = '"{suman.conf.js}.watch.per" entries must have an "includes/include" property ' +
-      'which is a string or array of strings.';
+      'which is a string or array of strings, or a "plugin" property.';
 
     assert(
-      Array.isArray(watchObj.include) ||
-      su.isStringWithPositiveLn(watchObj.include) ||
-      Array.isArray(watchObj.includes) ||
-      su.isStringWithPositiveLn(watchObj.includes),
-      includesErr);
+      Array.isArray(watchObj.include) || su.isStringWithPositiveLn(watchObj.include) ||
+      Array.isArray(watchObj.includes) || su.isStringWithPositiveLn(watchObj.includes),
+      includesErr
+    );
 
     const excludesErr =
       '"{suman.conf.js}.watch.per" entries may have an "excludes/exclude" property but that property must ' +
@@ -54,11 +57,10 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
 
     if (watchObj.excludes || watchObj.exclude) {
       assert(
-        Array.isArray(watchObj.exclude) ||
-        su.isStringWithPositiveLn(watchObj.exclude) ||
-        Array.isArray(watchObj.excludes) ||
-        su.isStringWithPositiveLn(watchObj.excludes),
-        excludesErr);
+        Array.isArray(watchObj.exclude) || su.isStringWithPositiveLn(watchObj.exclude) ||
+        Array.isArray(watchObj.excludes) || su.isStringWithPositiveLn(watchObj.excludes),
+        excludesErr
+      );
     }
 
     const _includes = [watchObj.includes].concat(watchObj.include);

@@ -2,6 +2,7 @@
 
 //dts
 import {INearestRunAndTransformRet} from "suman-types/dts/suman-utils";
+import {ChildProcess} from "child_process";
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -22,8 +23,6 @@ import * as chalk from 'chalk';
 
 //project
 import {log} from './logging';
-import {ChildProcess} from "child_process";
-
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -60,7 +59,7 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
         log.warning('runPath has been found.');
         runPath = runData.run;
       }
-      else{
+      else {
         log.warning('runPath has not been found.');
       }
     }
