@@ -52,13 +52,15 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
       throw new Error('watch object "plugin" value does not adhere to the expected interface => ' + util.inspect(watchObj));
     }
 
-    const name = plugin.name || 'unknown-watch-plugin';
+    const pluginName = plugin.pluginName || 'unknown-watch-plugin';
     const stdoutStartTranspileRegex = plugin.stdoutStartTranspileRegex;
     const stdoutEndTranspileRegex = plugin.stdoutEndTranspileRegex;
-    const env = plugin.env || {};
-    assert(su.isObject(env), '"env" property on plugin must be a plain object.');
+    const pluginEnv = plugin.pluginEnv || {};
+    assert(su.isObject(pluginEnv), '"env" property on plugin must be a plain object.');
+    const testEnv = watchObj.env || {};
+    assert(su.isObject(testEnv), '"env" property on watch object must be a plain object.');
     const execTests = watchObj.exec || plugin.execTests;  // the string representing the suman test command
-    const pluginExec = plugin.execTransform;  // the string representing the watch process command
+    const pluginExec = plugin.pluginExec;  // the string representing the watch process command
     assert(su.isStringWithPositiveLn(execTests),
       '"execTests" property on plugin value must be a string with length greater than zero;\n' +
       'if no "execTests" property is used on the pluging, an "exec" property must be defined on the watch per object.');
@@ -73,14 +75,13 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     let createWatcherPluginProcess = function () {
       const k = cp.spawn('bash', [], {
         cwd: plugin.cwd || process.cwd(),
-        env: Object.assign({}, process.env, env, {
-          SUMAN_WATCH_TEST_RUN: 'yes',
-          FORCE_COLOR: '1'
+        env: Object.assign({}, process.env, pluginEnv, {
+          SUMAN_WATCH_PLUGIN_RUN: 'yes'
         })
       });
       cb && k.once('error', cb);
-      k.stdout.pipe(pt(chalk.grey(` [${name}-worker] `))).pipe(process.stdout);
-      k.stderr.pipe(pt(chalk.yellow.bold(` [${name}-worker] `), {omitWhitespace: true})).pipe(process.stderr);
+      k.stdout.pipe(pt(chalk.grey(` [${pluginName}-worker] `))).pipe(process.stdout);
+      k.stderr.pipe(pt(chalk.yellow.bold(` [${pluginName}-worker] `), {omitWhitespace: true})).pipe(process.stderr);
 
       setImmediate(function () {
         k.stdin.end('\n' + pluginExec + '\n');
@@ -105,7 +106,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
 
     let killTestProcess = function () {
       testProcessWorker.k && log.warning('killing currenctly running test(s).');
-      testProcessWorker.k && testProcessWorker.k.kill('SIGINT');
+      testProcessWorker.k && testProcessWorker.k.kill('SIGKILL');
       setTimeout(function () {
         testProcessWorker.k && testProcessWorker.k.kill('SIGKILL');
       }, 3000);
@@ -113,7 +114,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
 
     let startTestProcess = function () {
       let testProcess = testProcessWorker.k = cp.spawn('bash', [], {
-        env: Object.assign({}, process.env, {
+        env: Object.assign({}, process.env, testEnv, {
           SUMAN_WATCH_TEST_RUN: 'yes'
         })
       });
@@ -153,7 +154,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     let restartWatcher = function (reason: string) {
       clearTimeout(restartPluginWatcherThrottleTimeout);
       log.warning('restarting watch-per process' + (reason || '.'));
-      watcherPluginProcess.k.kill('SIGINT');
+      watcherPluginProcess.k.kill('SIGKILL');
       setTimeout(function () {
         watcherPluginProcess.k.kill('SIGKILL');
       }, 2000);
@@ -232,10 +233,10 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
       }
     });
 
-    watcher.on('add', function(file: string){
-       log.info('file was added: ' + chalk.gray(file));
+    watcher.on('add', function (file: string) {
+      log.info('file was added: ' + chalk.gray(file));
     });
-    watcher.on('unlink', function(file: string){
+    watcher.on('unlink', function (file: string) {
       log.info('file was unlinked: ' + chalk.gray(file));
     });
 
