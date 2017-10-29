@@ -38,9 +38,6 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     // uggh.. here we reload suman.conf.js if the watcher is restarted
     let {watchObj, sumanConfig} = utils.getWatchObj(projectRoot, sumanOpts, $sumanConfig);
 
-    if(watchObj.plugin){
-
-    }
 
     const includesErr = '"{suman.conf.js}.watch.per" entries must have an "includes/include" property ' +
       'which is a string or array of strings, or a "plugin" property.';

@@ -26,6 +26,14 @@ export interface ISumanWatchPerItem {
 export const runWatch = function (projectRoot: string, paths: Array<string>,
                                   sumanConfig: ISumanConfig, sumanOpts: ISumanOpts, cb: Function) {
 
+  let callable = true;
+  let once = function(){
+    if(callable){
+      callable = false;
+      cb.apply(this,arguments);
+    }
+  };
+
   let makeRun;
 
   if (sumanOpts.watch_per) {
@@ -50,7 +58,7 @@ export const runWatch = function (projectRoot: string, paths: Array<string>,
 
   process.stdin.setEncoding('utf8').resume();
   const run = makeRun(projectRoot, paths, sumanOpts);
-  run(sumanConfig, false, cb);
+  run(sumanConfig, false, once);
 
 };
 
