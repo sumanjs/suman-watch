@@ -27,7 +27,6 @@ import {pt} from 'prepend-transform';
 import {log} from './logging';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
 import {makeTranspileAll} from './make-transpile-all';
-import {ISumanWatchPerItem} from "../index";
 
 ///////////////////////////////////////////////////////////////
 

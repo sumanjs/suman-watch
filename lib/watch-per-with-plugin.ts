@@ -120,8 +120,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
       });
 
       setImmediate(function () {
-        testProcess.stdin.write('\n' + execTests + '\n');
-        testProcess.stdin.end();
+        testProcess.stdin.end('\n' + execTests + '\n');
       });
 
       testProcess.stdout.pipe(pt(chalk.grey(` [suman-watch-test-process] `))).pipe(process.stdout);
