@@ -3,6 +3,7 @@
 //dts
 import {ISumanOpts, ISumanConfig} from 'suman-types/dts/global';
 import {ChildProcess} from 'child_process';
+import {ISumanWatchPlugin} from 'suman-watch-plugins';
 
 //polyfills
 const process = require('suman-browser-polyfills/modules/process');
@@ -32,6 +33,18 @@ const alwaysIgnore = utils.getAlwaysIgnore();
 
 ///////////////////////////////////////////////////////////////////////////////
 
+let totallyKillProcess = function (proc: ChildProcess, timeout?: number) {
+  proc.kill('SIGINT');
+  proc.unref();
+  proc.removeAllListeners();
+  proc.stdout && proc.stdout.removeAllListeners();
+  proc.stderr && proc.stderr.removeAllListeners();
+  proc.stdin && proc.stdin.removeAllListeners();
+  setTimeout(function () {
+    proc.kill('SIGKILL');
+  }, timeout || 3000);
+};
+
 export const makeRun = function (projectRoot: string, paths: Array<string>, sumanOpts: ISumanOpts) {
 
   return function run($sumanConfig: ISumanConfig, isRunNow: boolean, cb?: Function) {
@@ -39,7 +52,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     // uggh.. here we reload suman.conf.js if the watcher is restarted
     let {watchObj, sumanConfig} = utils.getWatchObj(projectRoot, sumanOpts, $sumanConfig);
 
-    let plugin;
+    let plugin: ISumanWatchPlugin;
     assert(su.isObject(watchObj.plugin), 'watch object plugin value is not an object.');
 
     if (watchObj.plugin.isSumanWatchPluginModule) {
@@ -74,7 +87,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
 
     let createWatcherPluginProcess = function () {
       const k = cp.spawn('bash', [], {
-        cwd: plugin.cwd || process.cwd(),
+        cwd: plugin.pluginCwd || process.cwd(),
         env: Object.assign({}, process.env, pluginEnv, {
           SUMAN_WATCH_PLUGIN_RUN: 'yes'
         })
@@ -105,12 +118,13 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     };
 
     let killTestProcess = function () {
-      testProcessWorker.k && log.warning('killing currenctly running test(s).');
-      testProcessWorker.k && testProcessWorker.k.kill('SIGKILL');
-      setTimeout(function () {
-        testProcessWorker.k && testProcessWorker.k.kill('SIGKILL');
-      }, 3000);
+      if (testProcessWorker.k) {
+        log.warning('killing currently running test(s).');
+        totallyKillProcess(testProcessWorker.k);
+      }
     };
+
+    let firstListener = true;
 
     let startTestProcess = function () {
       let testProcess = testProcessWorker.k = cp.spawn('bash', [], {
@@ -125,21 +139,56 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
 
       testProcess.stdout.pipe(pt(chalk.grey(` [suman-watch-test-process] `))).pipe(process.stdout);
       testProcess.stderr.pipe(pt(chalk.yellow.bold(` [suman-watch-test-process] `), {omitWhitespace: true})).pipe(process.stderr);
+
+      testProcess.once('exit', function (code, signal) {
+
+        if (Number.isInteger(code)) {
+          if (code > 0) {
+            log.error('test process exited with code ', code);
+          }
+          else {
+            log.veryGood('test process exited with code', code);
+          }
+        }
+        else if ((signal = String(signal).trim())) {
+          log.warning('test process was killed by signal', signal);
+        }
+        else {
+          log.warning('test process was killed with unknown exit code and signal.');
+        }
+
+        if (firstListener) {
+          firstListener = false;
+          log.info(chalk.bold('now listening for "rs" or "rr" commands via stdin.'));
+          process.stdin.on('data', onStdinData);
+        }
+      });
     };
 
-    process.stdin.on('data', function onData(d: string) {
+    let firstBadStdin = true;
+
+    const onStdinData = function (d: string) {
       if (String(d).trim() === 'rr') {
-        log.info('re-running test execution.');
+        log.info('"rr" command received: re-running test execution.');
         runNewTestProcess();
       }
       else if (String(d).trim() === 'rs') {
-        process.stdin.removeListener('data', onData);
+        log.info('"rs" (restart) command received: will restart watching process.');
         restartWatcher('user restarted the process with "rs" stdin command.');
       }
-      else {
-        log.info('stdin command not recognized.');
+      else if (String(d).trim() === '') {
+        if (firstBadStdin) {
+          firstBadStdin = false;
+          // if the user hits return, we want to let them add whitespace, without logging this line more than once
+          log.warning('stdin command not recognized => ' +
+            'try "rs" to restart the watcher process, or "rr" to re-run the most recently executed test.');
+        }
       }
-    });
+      else {
+        log.warning('stdin command not recognized => ' +
+          'try "rs" to restart the watcher process, or "rr" to re-run the most recently executed test.');
+      }
+    };
 
     let restartPluginWatcherThrottleTimeout: any;
     // we throttle this by 1 second to prevent overdoing things
@@ -151,17 +200,30 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
     };
 
     let restartWatcher = function (reason: string) {
+      try {
+        process.stdin.removeListener('data', onStdinData);
+      }
+      catch (err) {
+        log.warning(err.message);
+      }
+
+      if (chokidarWatcher) {
+        chokidarWatcher.close();
+        chokidarWatcher.removeAllListeners();
+      }
+
       clearTimeout(restartPluginWatcherThrottleTimeout);
       log.warning('restarting watch-per process' + (reason || '.'));
-      watcherPluginProcess.k.kill('SIGKILL');
-      setTimeout(function () {
-        watcherPluginProcess.k.kill('SIGKILL');
-      }, 2000);
+      if (watcherPluginProcess.k) {
+        log.warning('killing current watch plugin process.');
+        totallyKillProcess(watcherPluginProcess.k, 1000);
+      }
+
       setImmediate(run, null, false, null);
     };
 
     let runNewTestProcess = function () {
-      log.veryGood(chalk.green.bold(`Now running test process using: `) + `'${chalk.black.bold(execTests)}'.`);
+      log.veryGood(chalk.green.bold(`Now running test process using: `) + `${chalk.bgBlack("'" + chalk.white.bold(execTests) + "'")}.`);
       killTestProcess();
       startTestProcess();
     };
@@ -185,34 +247,36 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
 
       watcherStdio.stdout += String(p);
 
+      if (stdoutEndTranspileRegex.test(watcherStdio.stdout)) {
+        watcherStdio.stdout = ''; // reset stdout
+        log.veryGood(chalk.bold('running a new test process: stdout from watch worker has indicated compilation has finished.'));
+        runNewTestProcess();
+        return;
+      }
+
       if (stdoutStartTranspileRegex.test(watcherStdio.stdout)) {
         watcherStdio.stdout = ''; // reset stdout
+        log.warning(chalk.yellow('killing any currently running test process, since we have received stdout matching a new compilation phase.'));
         killTestProcess();
       }
 
-      if (stdoutEndTranspileRegex.test(watcherStdio.stdout)) {
-        watcherStdio.stdout = ''; // reset stdout
-        runNewTestProcess();
-      }
-
     });
 
-    let watcher = chokidar.watch('**/**/*.js',
-      {
-        cwd: projectRoot,
-        persistent: true,
-        ignoreInitial: true,
-        ignored: /(\.log$|\/.idea\/|\/node_modules\/suman\/)/
-      });
+    let chokidarWatcher = chokidar.watch('**/*.js', {
+      cwd: projectRoot,
+      persistent: true,
+      ignoreInitial: true,
+      ignored: /(\.log$|\/.idea\/|\/node_modules\/suman\/)/
+    });
 
-    watcher.on('error', function (e: Error) {
+    chokidarWatcher.on('error', function (e: Error) {
       log.error('suman-watch watcher experienced an error', e.stack || e);
     });
 
-    watcher.once('ready', function () {
+    chokidarWatcher.once('ready', function () {
       log.veryGood('watcher is ready.');
       let watchCount = 0;
-      let watched = watcher.getWatched();
+      let watched = chokidarWatcher.getWatched();
 
       Object.keys(watched).forEach(function (k) {
         let ln = watched[k].length;
@@ -224,7 +288,7 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
       log.veryGood('total number of files being watched by suman-watch process ', watchCount);
     });
 
-    watcher.on('change', function (p: string) {
+    chokidarWatcher.on('change', function (p: string) {
       log.good('change event, file path => ', chalk.gray(p));
 
       if (path.basename(p) === 'suman.conf.js') {
@@ -232,10 +296,11 @@ export const makeRun = function (projectRoot: string, paths: Array<string>, suma
       }
     });
 
-    watcher.on('add', function (file: string) {
+    chokidarWatcher.on('add', function (file: string) {
       log.info('file was added: ' + chalk.gray(file));
     });
-    watcher.on('unlink', function (file: string) {
+
+    chokidarWatcher.on('unlink', function (file: string) {
       log.info('file was unlinked: ' + chalk.gray(file));
     });
 
