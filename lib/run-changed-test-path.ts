@@ -29,7 +29,7 @@ export const makeRunChangedTestPath = function (watchOpts: Object, projectRoot: 
   const transpile = makeTranspile(watchOpts, projectRoot);
   const execute = makeExecute(watchOpts, projectRoot);
 
-  return function (f: string) {
+  return function run(f: string) {
 
     let dn = path.basename(path.dirname(f));
     const canonicalDirname = String('/' + dn + '/').replace(/\/+/g, '/');

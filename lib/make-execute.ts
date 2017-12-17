@@ -186,10 +186,10 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
         return process.nextTick(cb, null, {code: -1});
       }
 
-      k = cp.spawn(f, [], {
+      k = cp.spawn('bash', [], {
         detached: false,
         cwd: projectRoot,
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: ['pipe', 'pipe', 'pipe'],
         env: Object.assign({}, process.env, {
           SUMAN_PROJECT_ROOT: projectRoot,
           SUMAN_CHILD_TEST_PATH: f,
@@ -198,6 +198,8 @@ export const makeExecute = function (watchOptions: Object, projectRoot: string) 
           SUMAN_WATCH_TEST_RUN: 'yes'
         })
       });
+      
+      k.stdin.end(`\nexec ${f};\n`);
 
       k.once('error', function (e: Error) {
         log.error(e.stack || e);
