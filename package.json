@@ -23,7 +23,7 @@
     "integration"
   ],
   "author": "Olegzandr",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/sumanjs/suman-watch/issues"
   },
