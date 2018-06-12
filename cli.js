@@ -1,31 +1,31 @@
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-var path = require("path");
-var residence = require("residence");
-var dashdash = require("dashdash");
-var index = require(".");
-var log = require("./lib/logging");
-var projectRoot = residence.findProjectRoot(process.cwd());
+const path = require("path");
+const residence = require("residence");
+const dashdash = require("dashdash");
+const index = require(".");
+const log = require("./lib/logging");
+const projectRoot = residence.findProjectRoot(process.cwd());
 if (!projectRoot) {
     log.error('your project root could not be found.');
     process.exit(1);
 }
-var sumanConf;
+let sumanConf;
 try {
     sumanConf = require(projectRoot + '/suman.conf.js');
 }
 catch (err) {
     log.error('cannot find suman.conf.js in your project root.');
-    log.error("your project root was presumed to be: " + projectRoot + ".");
+    log.error(`your project root was presumed to be: ${projectRoot}.`);
     process.exit(1);
 }
-var testDir = process.env.TEST_DIR = sumanConf.testDir;
+let testDir = process.env.TEST_DIR = sumanConf.testDir;
 if (!testDir) {
     testDir = process.env.TEST_DIR = path.resolve(projectRoot + '/test');
 }
 log.info('testDir => ', testDir);
-var options = require('./lib/cmd-opts');
-var opts, parser = dashdash.createParser({ options: options });
+const options = require('./lib/cmd-opts');
+let opts, parser = dashdash.createParser({ options });
 try {
     opts = parser.parse(process.argv);
 }

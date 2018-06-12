@@ -1,19 +1,19 @@
 'use strict';
 Object.defineProperty(exports, "__esModule", { value: true });
-var assert = require("assert");
-var utils_1 = require("./lib/utils");
-var logging_1 = require("./lib/logging");
+const assert = require("assert");
+const utils_1 = require("./lib/utils");
+const logging_1 = require("./lib/logging");
 exports.runWatch = function (projectRoot, paths, sumanConfig, sumanOpts, cb) {
-    var callable = true;
-    var once = function () {
+    let callable = true;
+    let once = function () {
         if (callable) {
             callable = false;
             cb.apply(this, arguments);
         }
     };
-    var makeRun;
+    let makeRun;
     if (sumanOpts.watch_per) {
-        var watchObj = utils_1.default.getWatchObj(projectRoot, sumanOpts, sumanConfig).watchObj;
+        let { watchObj } = utils_1.default.getWatchObj(projectRoot, sumanOpts, sumanConfig);
         if (watchObj.plugin) {
             logging_1.log.info('running "watch-per" * using suman-watch plugin *.');
             makeRun = require('./lib/watch-per-with-plugin').makeRun;
@@ -30,7 +30,7 @@ exports.runWatch = function (projectRoot, paths, sumanConfig, sumanOpts, cb) {
     }
     assert(typeof makeRun === 'function', 'Suman implementation error - the desired suman-watch module does not export the expected interface.');
     process.stdin.setEncoding('utf8').resume();
-    var run = makeRun(projectRoot, paths, sumanOpts);
+    const run = makeRun(projectRoot, paths, sumanOpts);
     run(sumanConfig, false, once);
 };
 exports.plugins = require('suman-watch-plugins');

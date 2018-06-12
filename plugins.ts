@@ -1,2 +1,3 @@
 
-export = require('suman-watch-plugins');
+
+export * from 'suman-watch-plugins';

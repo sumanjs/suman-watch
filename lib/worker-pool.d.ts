@@ -1,1 +1,2 @@
-export declare const workerPool: any;
+import { Pool } from "poolio";
+export declare const workerPool: Pool;
