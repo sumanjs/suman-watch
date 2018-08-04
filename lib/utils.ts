@@ -18,7 +18,7 @@ import fs = require('fs');
 import * as stream from 'stream';
 
 //npm
-import {log} from './logging';
+import log from './logging';
 import chalk = require('chalk');
 import * as async from 'async';
 import * as su from 'suman-utils';

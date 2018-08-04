@@ -24,7 +24,7 @@ import {Pool} from 'poolio';
 import {pt} from 'prepend-transform';
 
 //project
-import {log} from './logging';
+import log from './logging';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
 import {makeTranspileAll} from './make-transpile-all';
 

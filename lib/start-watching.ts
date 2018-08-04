@@ -23,7 +23,7 @@ import * as chalk from 'chalk';
 import {Pool} from 'poolio';
 
 //project
-import {log} from './logging';
+import log from './logging';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
 import {makeTranspileAll} from './make-transpile-all';
 import {makeRunChangedTestPath} from './run-changed-test-path';

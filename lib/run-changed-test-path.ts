@@ -20,7 +20,7 @@ import * as chalk from 'chalk';
 import {makeTranspile} from './make-transpile';
 import {makeExecute} from './make-execute';
 import {find, getAlwaysIgnore, isPathMatchesSig} from './utils';
-import {log} from './logging';
+import log from './logging';
 
 //////////////////////////////////////////////////////////////////////////////////////////
 

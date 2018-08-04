@@ -6,3 +6,4 @@ export declare const log: {
     error: any;
     newLine: () => void;
 };
+export default log;

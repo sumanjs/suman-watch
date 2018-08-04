@@ -23,7 +23,7 @@ import {pt} from 'prepend-transform';
 import * as chalk from 'chalk';
 
 //project
-import {log} from './logging';
+import log from './logging';
 
 /////////////////////////////////////////////////////////////////////////////////////////////
 

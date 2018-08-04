@@ -21,7 +21,7 @@ import * as async from 'async';
 import * as su from 'suman-utils';
 
 //project
-import {log} from './logging';
+import log from './logging';
 
 /////////////////////////////////////////////////////////////////////////////////////////
 

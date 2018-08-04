@@ -20,7 +20,7 @@ import cp = require('child_process');
 
 //npm
 import * as _ from 'lodash';
-import {log} from './logging';
+import log from './logging';
 import * as su from 'suman-utils';
 import * as chokidar from 'chokidar';
 import * as chalk from 'chalk';

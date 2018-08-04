@@ -5,11 +5,11 @@ import path = require('path');
 
 //npm
 import residence = require('residence');
-import dashdash = require('dashdash');
+const dashdash = require('dashdash');
 
 //project
 import index = require('.');
-import log = require('./lib/logging');
+import log from './lib/logging';
 
 
 ////////////////////////////////////////////////////////////////////////////////

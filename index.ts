@@ -8,7 +8,7 @@ import assert = require('assert');
 
 //project
 import utils from './lib/utils';
-import {log} from './lib/logging';
+import log from './lib/logging';
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
