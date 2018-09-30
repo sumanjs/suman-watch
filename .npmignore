@@ -22,11 +22,7 @@ yarn.lock
 *.json
 *.md
 *.txt
-*.ts
 *.yml
 
-
-### negation
-!*.d.ts
 
 
